@@ -1,0 +1,70 @@
+.novel-grid {
+  border: #00a solid 0.1em;
+  margin: 1em 1em 1em 1em;
+  background-color: #000;
+  max-width: 15em;
+  border-radius: 8px;
+}
+
+.novel-grid-thumbnail {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-top: 0.5em;
+}
+
+.novel-grid-thumbnail-image {
+  max-width: 14em;
+}
+
+.novel-grid-title {
+  color: #fff;
+  font: "JetBrains Mono";
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.novel-grid-author {
+  color: #fff;
+  font: "JetBrains Mono";
+  font-size: 0.5em;
+  text-align: center;
+}
+
+.novel-grid-author-label {
+  color: #ccf49d;
+}
+
+.novel-grid-metrics-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1em;
+  color: #fff;
+  font-size: 0.5em;
+}
+
+.novel-grid-heart {
+  color: #f28f8f;
+}
+
+.novel-grid-metrics-views-label {
+  color: #ccf49d;
+}
+
+.novel-grid-description {
+  color: #fff;
+  font: "JetBrains Mono";
+  text-align: center;
+  padding: 1em 1em 1em 1em;
+  font-size: 0.7em;
+}
+
+.tag-bar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.1em;
+  margin: 0.1em;
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "title": "I became a King in another World!",
+    "author": "Spicy Goldfish",
+    "likes": 24,
+    "views": 18325,
+    "description": "I was reborn.\nI became a true conquerer.\nHAHAHAHA!!!!!",
+    "tags": ["Adventure", "Action", "Harem", "Romance", "Fantasy"]
+  },
+  {
+    "id": 2,
+    "title": "First Person Viewer",
+    "author": "Flying Madman",
+    "likes": 19,
+    "views": 452,
+    "description": "A young mage discovers forbidden magic in her grandmother's attic. She must master these dark arts before the Inquisition arrives. Time is running out as ancient forces awaken.",
+    "tags": ["Romance", "Slice of Life", "Dystopia", "Cyberpunk"]
+  },
+  {
+    "id": 3,
+    "title": "Broken Clocks",
+    "author": "GeneralOne",
+    "likes": 2432,
+    "views": 500000,
+    "description": "In a world where memories can be stolen, a thief loses his own past. He races through neon-lit streets searching for the truth. Every clue leads deeper into a corporate conspiracy.",
+    "tags": ["Action", "Adventure", "Kingdom Building", "Dark Fantasy"]
+  },
+  {
+    "id": 4,
+    "title": "Nowhere Home",
+    "author": "Admiral Kenobi",
+    "likes": 40,
+    "views": 240,
+    "description": "The last dragon hides in human form at a coffee shop. When hunters close in, she must choose between safety and her true nature. Her decision will determine the fate of all magical beings.",
+    "tags": ["Action", "Nomance", "Overpowered Protagonist", "Hunters"]
+  }
+]

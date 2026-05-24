@@ -1,0 +1,23 @@
+services:
+  app:
+    build: ./novelot-backend/
+    ports:
+      - "1714:1714"
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/novelot
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d  # ← runs on first startup
+      - ./myfile.json:/data/import/myfile.json    # ← your json file
+      - ./novelot-backend/src/assets/novelList.json:/data/import/novelList.json
+
+volumes:
+  mongo_data:
+

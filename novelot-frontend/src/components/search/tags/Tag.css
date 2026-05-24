@@ -1,0 +1,15 @@
+.tag {
+  background-color: #acc8e5;
+  border:
+    #acc8e5 solid,
+    0.5em;
+  border-radius: 8px;
+  max-height: 0.6em;
+  display: flex;
+  align-items: center;
+}
+
+.primary-tag {
+  color: #000;
+  font-size: 0.4em;
+}
