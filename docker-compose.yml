@@ -1,4 +1,12 @@
 services:
+  web:
+    build: ./novelot-frontend/
+    ports:
+      - 5173:5173
+    environment:
+      - VITE_API_URL=http://app:1714
+    depends_on:
+      - app
   app:
     build: ./novelot-backend/
     ports:

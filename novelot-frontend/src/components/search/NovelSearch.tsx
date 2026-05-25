@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 function NovelSearch() {
   const [novelList, setNovelList] = useState<Novel[]>([])
   useEffect(() => {
-    fetch('http://localhost:1714/novels/all')
+    fetch("/api/novels/all")
       .then(response => response.json())
       .then(data => {
-        if (Array.isArray(data.default) && data.default.every(isNovel)) {
-          setNovelList(data.default)
+        if (Array.isArray(data) && data.every(isNovel)) {
+          setNovelList(data)
         }
       })
       .catch(error => console.log(error))
