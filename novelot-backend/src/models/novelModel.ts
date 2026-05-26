@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { Model } from "mongoose";
+import type { Novel } from "../types/Novel.js"
 
-const novelSchema = new mongoose.Schema({
+const novelSchema = new mongoose.Schema<Novel>({
   id: Number,
   title: String,
   author: String,
@@ -10,12 +11,10 @@ const novelSchema = new mongoose.Schema({
   tags: [String]
 })
 
-const novel = mongoose.model('Novel', novelSchema)
+const novelModel: Model<Novel> = mongoose.model('Novel', novelSchema)
 
-function getAllNovels(): Promise<any> {
-  return new Promise((resolve, reject) => {
-    novel.find().then(novels => resolve(novels)).catch(err => reject(err))
-  })
+function getAllNovels(): Promise<Novel[]> {
+  return novelModel.find().lean()
 }
 
 export default { getAllNovels };

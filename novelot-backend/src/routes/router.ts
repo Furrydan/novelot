@@ -1,9 +1,8 @@
-import { IncomingMessage, ServerResponse } from "http";
-import novelController from "../controllers/novelController.js"
+import { Router } from "express";
+import novelRouter from "./novelRouter.js";
 
-function route(req: IncomingMessage, res: ServerResponse<IncomingMessage>) {
-  if (req.url === "/novels/all") {
-    return novelController.getAllNovels(req, res)
-  }
-}
-export default { route }
+const router = Router()
+
+router.use("/novels", novelRouter)
+
+export default router

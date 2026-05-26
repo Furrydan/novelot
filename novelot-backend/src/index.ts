@@ -1,16 +1,16 @@
-import http from 'http'
-import router from "../src/routes/router.js"
+import express from "express"
 import connectDb from "./db.js"
-
-const server = http.createServer((req, res) => {
-  router.route(req, res)
-})
+import router from "./routes/router.js"
+import cors from "cors"
 
 const PORT = process.env.PORT || 1714
+const app = express()
+app.use(cors({
+  origin: 'http://localhost:5173'
+}))
+app.use(express.json())
+app.use('/api', router)
 
 await connectDb();
 
-server.listen(PORT, () => {
-  console.log(`Server running on Port : ${PORT}`)
-
-})
+app.listen(PORT, () => console.log(`Server Running on port ${PORT}`))

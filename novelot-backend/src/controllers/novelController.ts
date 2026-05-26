@@ -1,22 +1,27 @@
-import { IncomingMessage, ServerResponse } from "node:http";
+import { Request, Response } from "express"
 import novelService from "../services/novelService.js";
+import { isNovel, Novel } from "../types/Novel.ts";
 
-async function getAllNovels(req: IncomingMessage, res: ServerResponse<IncomingMessage>) {
-  const novelList: string | undefined = await novelService.findAllNovels()
+async function getAllNovels(req: Request, res: Response) {
+  const novelList: Novel[] | undefined = await novelService.findAllNovels()
 
-  if (typeof (novelList) === 'string') {
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-    res.writeHead(200, { 'content-type': 'application/json' })
-    res.end(novelList)
+  if (novelList?.every(novel => isNovel(novel))) {
+    res.json(novelList)
   }
   else {
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-    res.writeHead(404, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ "message": "Not found" }))
+    res.json({ "message": "Not found" })
   }
 }
-export default { getAllNovels }
+
+async function getNovelByName(req: Request, res: Response) {
+  const search = req.params.name as string
+  const novelListMatching: Novel[] | undefined = await novelService.getNovelByText(search)
+  if (novelListMatching?.every(novel => isNovel(novel))) {
+    res.json(novelListMatching)
+  }
+  else {
+    res.status(404).json({ error: 'Not Found' })
+  }
+}
+
+export default { getAllNovels, getNovelByName }
