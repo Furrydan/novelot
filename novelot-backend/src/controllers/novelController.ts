@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import novelService from "../services/novelService.js";
-import { isNovel, Novel } from "../types/Novel.ts";
+import { isNovel, Novel } from "../types/Novel.js";
 
 async function getAllNovels(req: Request, res: Response) {
   const novelList: Novel[] | undefined = await novelService.findAllNovels()

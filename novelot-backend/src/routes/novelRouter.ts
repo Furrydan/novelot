@@ -1,5 +1,5 @@
 import express from "express"
-import novelController from "../controllers/novelController.ts"
+import novelController from "../controllers/novelController.js"
 
 const novelRouter = express.Router()
 

@@ -17,4 +17,10 @@ function getAllNovels(): Promise<Novel[]> {
   return novelModel.find().lean()
 }
 
-export default { getAllNovels };
+function getNovelsWithMatchingChar(char: string): Promise<Novel[]> {
+  return novelModel.find({
+    title: { $regex: char, $options: 'i' }
+  }).lean()
+}
+
+export default { getAllNovels, getNovelsWithMatchingChar };

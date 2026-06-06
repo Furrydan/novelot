@@ -3,15 +3,12 @@ import dotenv from "dotenv"
 
 dotenv.config();
 async function connectDB() {
-  if (typeof (process.env.MONGODB_URI) === "string") {
-    try {
-      await mongoose.connect(process.env.MONGODB_URI)
-      console.log("Connected to Database")
-    }
-    catch {
-      console.error("Connection Failed")
-    }
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI environment variable not found!")
   }
+  await mongoose.connect(process.env.MONGODB_URI)
+  console.log("Connected to Database")
+
 }
 export default connectDB
 

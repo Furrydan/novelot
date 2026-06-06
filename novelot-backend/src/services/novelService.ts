@@ -1,10 +1,6 @@
 import novelModel from "../models/novelModel.js"
 import { Novel } from "../types/Novel.ts";
 
-interface novelMatchingPoints {
-  novel: Novel
-  points: number
-}
 
 async function findAllNovels(): Promise<Novel[] | undefined> {
   try {
@@ -17,13 +13,11 @@ async function findAllNovels(): Promise<Novel[] | undefined> {
 
 async function getNovelByText(search: string) {
   try {
-    const novelList: Novel[] = await novelModel.getAllNovels()
-    let novelMatchingPointsObject: novelMatchingPoints[] = []
-    novelList.map(novel => novelMatchingPointsObject.push({ novel: novel, points: fuzzyFind(search, novel.title) }))
-    novelMatchingPointsObject = novelMatchingPointsObject.sort((novel1, novel2) => novel2.points - novel1.points)
-    novelMatchingPointsObject = novelMatchingPointsObject.filter(novel => novel.points > 0)
-    const matchingNovels: Novel[] = []
-    novelMatchingPointsObject.map((novelMatching: novelMatchingPoints): number => matchingNovels.push(novelMatching.novel))
+    const novelList: Novel[] = await novelModel.getNovelsWithMatchingChar(search[0])
+    const matchingNovels: Novel[] = novelList.map(novel => ({ novel: novel, points: fuzzyFind(search, novel.title) }))
+      .filter(novel => novel.points > 0)
+      .sort((novel1, novel2) => novel2.points - novel1.points)
+      .map(item => item.novel)
 
     return matchingNovels
   }
