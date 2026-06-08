@@ -13,8 +13,8 @@ const novelSchema = new mongoose.Schema<Novel>({
 
 const novelModel: Model<Novel> = mongoose.model('Novel', novelSchema)
 
-function getAllNovels(): Promise<Novel[]> {
-  return novelModel.find().lean()
+function getAllNovels(page: number, limit: number): Promise<Novel[]> {
+  return novelModel.find().limit(limit * 1).skip((page - 1) * limit).lean()
 }
 
 function getNovelsWithMatchingChar(char: string): Promise<Novel[]> {
