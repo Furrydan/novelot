@@ -11,7 +11,7 @@ const novelSchema = new mongoose.Schema<Novel>({
   tags: [String]
 })
 
-const novelModel: Model<Novel> = mongoose.model('Novel', novelSchema)
+const novelModel: Model<Novel> = mongoose.model('Novel', novelSchema, "novels")
 
 function getAllNovels(page: number, limit: number): Promise<Novel[]> {
   return novelModel.find().limit(limit * 1).skip((page - 1) * limit).lean()

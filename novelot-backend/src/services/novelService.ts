@@ -1,5 +1,5 @@
 import novelModel from "../models/novelModel.js"
-import { Novel } from "../types/Novel.ts";
+import { Novel } from "../types/Novel.js";
 
 
 async function findAllNovels(page: number, limit: number): Promise<Novel[] | undefined> {

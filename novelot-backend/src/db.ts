@@ -8,6 +8,8 @@ async function connectDB() {
   }
   await mongoose.connect(process.env.MONGODB_URI)
   console.log("Connected to Database")
+  console.log("collections", await mongoose.connection.db?.listCollections().toArray())
+
 
 }
 export default connectDB
