@@ -3,13 +3,27 @@ import userService from "../services/userService.js"
 
 async function login(req: Request, res: Response) {
     const body = req.body
-    const x: boolean = await userService.checkEmail(body.email)
 
-    if (x) {
-        res.json({ "message": "Exists" })
-    } else {
-        res.status(404).json({"message" : "User Not Found"})
+    const loggedIn : boolean = await userService.loginUser(body.email, body.password)
+    if (loggedIn) {
+        res.json("Logged in Succesfully")
+    }
+    else {
+        res.status(404).json("Failed to login")
     }
 }
 
-export default { login }
+async function register(req: Request, res: Response) {
+    const body = req.body
+
+    try {
+
+        await userService.registerUser(body.email, body.password)
+        res.json({ "message": "User Created" })
+    }
+    catch (err) {
+        res.status(404).json({ "message": "User Was Not Created" })
+    }
+}
+
+export default { login, register }
