@@ -1,14 +1,16 @@
 import { Request, Response } from "express"
 import userService from "../services/userService.js"
+import { sendAccessToken, sendRefreshToken } from "../helpers/token.js"
 
 async function login(req: Request, res: Response) {
     const body = req.body
 
-    const loggedIn : boolean = await userService.loginUser(body.email, body.password)
-    if (loggedIn) {
-        res.json("Logged in Succesfully")
+    try {
+        const { accessToken, refreshToken } = await userService.loginUser(body.email, body.password)
+        sendAccessToken(accessToken, res)
+        sendRefreshToken(refreshToken, res)
     }
-    else {
+    catch {
         res.status(404).json("Failed to login")
     }
 }
