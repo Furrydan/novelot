@@ -11,8 +11,8 @@ services:
     build: ./novelot-backend/
     ports:
       - "1714:1714"
-    environment:
-      - MONGODB_URI=mongodb://mongo:27017/novelot
+    env_file: 
+      - ./novelot-backend/.env
     depends_on:
       - mongo
 
