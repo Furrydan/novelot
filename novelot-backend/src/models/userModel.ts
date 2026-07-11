@@ -1,5 +1,6 @@
 import mongoose, { Model } from "mongoose";
 import { type UserInput, User } from "../types/User.js";
+import { novelotError } from "../helpers/error.js"
 
 const userSchema = new mongoose.Schema<User>({
     email: String,
@@ -58,8 +59,7 @@ async function addNewUser(email: string, password: string): Promise<UserInput> {
         return createdUser
     }
     catch (err) {
-        console.error(err)
-        return newUser
+        throw new novelotError(500, "Failed to Create User")
     }
 
 }

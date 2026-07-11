@@ -2,6 +2,7 @@ import userModel from "../models/userModel.js";
 import { hash, compare } from "bcryptjs"
 import { createAccessToken, createRefreshToken } from "../helpers/token.js"
 import { type User } from "../types/User.js"
+import { novelotError } from "../helpers/error.js";
 
 type tokens = {
     accessToken: string,
@@ -16,20 +17,13 @@ async function checkEmail(email: string): Promise<boolean> {
 async function registerUser(email: string, password: string): Promise<boolean> {
     const userExists: boolean = await userModel.checkEmailExists(email)
     if (userExists) {
-        throw new Error("User already exists")
+        throw new novelotError(409, "User Already Exists")
     }
 
     const hashedPassword: string = await hash(password, 10)
-    console.log(hashedPassword)
 
-    try {
-        await userModel.addNewUser(email, hashedPassword)
-        return true
-    }
-    catch (err) {
-        console.error(err)
-        return false
-    }
+    await userModel.addNewUser(email, hashedPassword)
+    return true
 }
 
 async function loginUser(email: string, password: string): Promise<tokens> {
