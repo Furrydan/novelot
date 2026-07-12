@@ -16,34 +16,28 @@ async function checkEmailExists(email: string): Promise<boolean> {
         return true
     }
     else {
-        return false
+        throw new novelotError(404, "User not found")
     }
 }
 
 async function getUser(email: string): Promise<User> {
-    const user: User = await userModel.findOne({ email: email })
-    if (user) {
-        return user
+    const user: User | null = await userModel.findOne({ email: email })
+    if (!user) {
+        throw new novelotError(404, "User not Found")
     }
-    else {
-        throw Error("User does not exist")
-    }
+    return user
 }
 
 async function addRefreshToken(email: string, refreshToken: string): Promise<boolean> {
-    console.log("Updating Token")
     const newUser: User | null = await userModel.findOneAndUpdate(
         { email },
         { $set: { refreshToken } },
         { new: true })
-    if (newUser) {
-        console.log("Updated Token")
-        return true
+    if (!newUser) {
+        console.error("Failed to Update Refresh Token")
+        throw new novelotError(500, "Internal Server Error")
     }
-    else {
-        console.log("Failed to update token")
-        return false
-    }
+    return true
 }
 
 async function addNewUser(email: string, password: string): Promise<UserInput> {
@@ -59,7 +53,8 @@ async function addNewUser(email: string, password: string): Promise<UserInput> {
         return createdUser
     }
     catch (err) {
-        throw new novelotError(500, "Failed to Create User")
+        console.error("Failed to Create User")
+        throw new Error("Failed to Create User")
     }
 
 }

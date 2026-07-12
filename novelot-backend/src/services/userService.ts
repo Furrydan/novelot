@@ -9,15 +9,11 @@ type tokens = {
     refreshToken: string
 }
 
-async function checkEmail(email: string): Promise<boolean> {
-    return await userModel.checkEmailExists(email)
-
-}
-
 async function registerUser(email: string, password: string): Promise<boolean> {
     const userExists: boolean = await userModel.checkEmailExists(email)
+
     if (userExists) {
-        throw new novelotError(409, "User Already Exists")
+        throw new novelotError(409, "User already exists")
     }
 
     const hashedPassword: string = await hash(password, 10)
@@ -27,36 +23,32 @@ async function registerUser(email: string, password: string): Promise<boolean> {
 }
 
 async function loginUser(email: string, password: string): Promise<tokens> {
-    const userExists: boolean = await userModel.checkEmailExists(email)
-
-    if (!userExists) {
-        throw new Error("User Does Not Exist")
+    let user: User
+    try {
+        user = await userModel.getUser(email)
+    }
+    catch (err) {
+        if (err instanceof novelotError && err.status === 404) {
+            throw new novelotError(401, "Email or Password is incorrect")
+        }
+        else {
+            throw err
+        }
     }
 
-    const user: User = await userModel.getUser(email)
-    const valid: boolean = await compare(password, user.password)
-    if (!valid) {
-        throw new Error("Password is incorrect")
+    const passwordIsValid: boolean = await compare(password, user.password)
+    if (!passwordIsValid) {
+        throw new novelotError(401, "Email or Password is incorrect")
     }
 
-    console.log("Ready to create tokens")
     const accessToken: string = createAccessToken(user._id)
-    console.log("Created AT")
     const refreshToken: string = createRefreshToken(user._id)
-    console.log("Created RT")
 
-    console.log("Callingaddtoken function")
-
-
-    const addedTokenToDB: boolean = await userModel.addRefreshToken(email, refreshToken)
-
-    if (!addedTokenToDB) {
-        throw new Error("Failed to update DB")
-    }
+    await userModel.addRefreshToken(email, refreshToken)
 
     const tokens: tokens = { accessToken, refreshToken }
     return tokens
 }
 
 
-export default { checkEmail, registerUser, loginUser }
+export default { registerUser, loginUser }
