@@ -1,2 +1,11 @@
 .env
 .claudeignore
+node_modules/
+dist/
+build/
+out/
+*.log
+npm-debug.log*
+coverage/
+.npm/
+*.tsbuildinfo
