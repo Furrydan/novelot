@@ -1,57 +1,27 @@
 import { Request, Response } from "express"
 import userService from "../services/userService.js"
 import { sendAccessToken, sendRefreshToken } from "../helpers/token.js"
-import { novelotError } from "../helpers/error.js"
 import { validateEmail, validatePassword } from "../helpers/validator.js"
 
 async function login(req: Request, res: Response) {
     const body = req.body
 
-    if (!validateEmail(res, body.email)) {
-        return
-    }
-    if (!validatePassword(res, body.password)) {
-        return
-    }
+    validateEmail(body.email)
+    validatePassword(body.password)
 
-    try {
-        const { accessToken, refreshToken } = await userService.loginUser(body.email, body.password)
-        sendAccessToken(accessToken, res)
-        sendRefreshToken(refreshToken, res)
-    }
-    catch (err) {
-        if (err instanceof novelotError) {
-            res.status(err.status).json({ "message": `${err.message}` })
-        }
-        else {
-            res.status(500).json({ "message": "Failed to login" })
-        }
-    }
+    const { accessToken, refreshToken } = await userService.loginUser(body.email, body.password)
+    sendAccessToken(accessToken, res)
+    sendRefreshToken(refreshToken, res)
 }
 
 async function register(req: Request, res: Response) {
     const body = req.body
 
-    if (!validateEmail(res, body.email)) {
-        return
-    }
-    if (!validatePassword(res, body.password)) {
-        return
-    }
+    validateEmail(body.email)
+    validatePassword(body.password)
 
-
-    try {
-        await userService.registerUser(body.email, body.password)
-        res.status(201).json({ "message": "User Created" })
-    }
-    catch (err) {
-        if (err instanceof novelotError) {
-            res.status(err.status).json({ "message": `${err.message}` })
-        }
-        else {
-            res.status(500).json({ "message": "Internal Server Error" })
-        }
-    }
+    await userService.registerUser(body.email, body.password)
+    res.status(201).json({ "message": "User Created" })
 }
 
 export default { login, register }

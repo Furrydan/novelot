@@ -31,12 +31,11 @@ async function loginUser(email: string, password: string): Promise<tokens> {
         if (err instanceof novelotError && err.status === 404) {
             throw new novelotError(401, "Email or Password is incorrect")
         }
-        else {
-            throw err
-        }
+        throw err
     }
 
     const passwordIsValid: boolean = await compare(password, user.password)
+
     if (!passwordIsValid) {
         throw new novelotError(401, "Email or Password is incorrect")
     }

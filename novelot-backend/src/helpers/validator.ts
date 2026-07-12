@@ -1,17 +1,18 @@
-import { Response } from "express"
+import { novelotError } from "./error.js"
 
-export function validateEmail(res: Response, email: string): boolean {
+export function validateEmail(email: string): void {
     if (typeof (email) !== "string") {
-        res.status(400).json({ "message": "Bad Email" })
-        return false
+        throw new novelotError(400, "Bad Email")
     }
-    return true
+    const regexMail: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/g
+
+    if (!email.match(regexMail)) {
+        throw new novelotError(400, "Bad Email")
+    }
 }
 
-export function validatePassword(res: Response, password: string): boolean {
+export function validatePassword(password: string): void {
     if (typeof (password) !== "string") {
-        res.status(400).json({ "message": "Bad Password" })
-        return false
+        throw new novelotError(400, "Bad Password")
     }
-    return true
 }

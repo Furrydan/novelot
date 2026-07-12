@@ -16,7 +16,7 @@ async function checkEmailExists(email: string): Promise<boolean> {
         return true
     }
     else {
-        throw new novelotError(404, "User not found")
+        return false
     }
 }
 
@@ -34,8 +34,7 @@ async function addRefreshToken(email: string, refreshToken: string): Promise<boo
         { $set: { refreshToken } },
         { new: true })
     if (!newUser) {
-        console.error("Failed to Update Refresh Token")
-        throw new novelotError(500, "Internal Server Error")
+        throw new novelotError(500, "Failed to Update Refresh Token")
     }
     return true
 }
@@ -48,14 +47,8 @@ async function addNewUser(email: string, password: string): Promise<UserInput> {
         refreshToken: ""
     }
 
-    try {
-        const createdUser = await userModel.create(newUser)
-        return createdUser
-    }
-    catch (err) {
-        console.error("Failed to Create User")
-        throw new Error("Failed to Create User")
-    }
+    const createdUser = await userModel.create(newUser)
+    return createdUser
 
 }
 
