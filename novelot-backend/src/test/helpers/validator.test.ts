@@ -4,61 +4,100 @@ import { describe, expect, it } from "vitest"
 
 const emailError = new novelotError(400, "Bad Email")
 const passwordError = new novelotError(400, "Bad Password")
+const typeTest = [
+    { input: false as unknown as string, reason: "Boolean" },
+    { input: 123 as unknown as string, reason: "Number" },
+    { input: {} as unknown as string, reason: "Object" }
+]
+const invalidSpecialChars = ["!", "#", "$", "^", "&"]
+const validSpecialCharsUsername = ["_", ".", "%", "+", "-"]
+const invalidSpecialCharsDomain = ["_", ".", "%", "+"]
+
 
 describe("#email", () => {
-    it("Rejects email if boolean", () => {
-        expect(() => validateEmail(false as unknown as string)).toThrow(emailError)
-    })
-    it("Rejects email if number", () => {
-        expect(() => validateEmail(123 as unknown as string)).toThrow(emailError)
-    })
-    it("Rejects email if object", () => {
-        expect(() => validateEmail({} as unknown as string)).toThrow(emailError)
+    it.each(typeTest)("Rejects input : $reason", ({ input }) => {
+        expect(() => validateEmail((input))).toThrow(emailError)
     })
     it("Accepts valid gmail", () => {
         expect(() => validateEmail("harry@gmail.com")).not.toThrow()
     })
-    it("Rejects email without @", () => {
+    it("Rejects email without domain", () => {
         expect(() => validateEmail("harry.gmail.com")).toThrow(emailError)
     })
-    it("Rejects email without the dot after @", () => {
-        expect(() => validateEmail("harry@gmail*com")).toThrow(emailError)
+    it("Rejects email without TLD", () => {
+        expect(() => validateEmail("harry@gmailcom")).toThrow(emailError)
     })
-    it("Accepts Special characters", () => {
-        expect(() => validateEmail("AZaz09._%+-@AZaz09-.AZaz")).not.toThrow()
+    it.each(validSpecialCharsUsername)("Accept %s in username", (char) => {
+        expect(() => validateEmail(`harry${char}@gmail.com`)).not.toThrow()
     })
-    it("Rejects emails that are empty before @", () => {
+    it.each(invalidSpecialChars)("Reject %s in username", (char) => {
+        expect(() => validateEmail(`harry${char}@gmail.com`)).toThrow(novelotError)
+    })
+    it.each(invalidSpecialCharsDomain)("Reject %s in domain", (char) => {
+        expect(() => validateEmail(`harry@${char}gmail.com`)).toThrow(novelotError)
+    })
+    it("Accepts - in domain", () => {
+        expect(() => validateEmail("harry@gmail-google.com")).not.toThrow()
+    })
+    it.each(invalidSpecialChars)("Reject %s in TLD", (char) => {
+        expect(() => validateEmail(`harry@gmail.${char}om`)).toThrow(novelotError)
+    })
+    it.each(validSpecialCharsUsername)("Reject %s in TLD", (char) => {
+        expect(() => validateEmail(`harry@gmail.${char}om`)).toThrow(novelotError)
+    })
+    it("Rejects emails with empty username", () => {
         expect(() => validateEmail("@gmail.com")).toThrow(emailError)
     })
-    it("Rejects emails that are empty between @ and dot", () => {
+    it("Rejects emails with empty domain", () => {
         expect(() => validateEmail("harry@.com")).toThrow(emailError)
     })
-    it("Rejects double @", () => {
+    it("Rejects more than one @", () => {
         expect(() => validateEmail("harry@@gmail.com")).toThrow(emailError)
     })
-    it("Rejects dot between @ and dot", () => {
+    it("Rejects dot in domain", () => {
         expect(() => validateEmail("harry@g.mail.com")).toThrow(emailError)
     })
-    it("Rejects emails that have less that two characters at the end", () => {
+    it("Rejects dot in TLD", () => {
+        expect(() => validateEmail("harry@gmail.c.om")).toThrow(emailError)
+    })
+    it("Rejects trailing dot", () => {
+        expect(() => validateEmail("harry@gmail.com.")).toThrow(emailError)
+    })
+    it("Rejects empty email", () => {
+        expect(() => validateEmail("")).toThrow(emailError)
+    })
+    it("Rejects emails that have less that two characters for TLD", () => {
         expect(() => validateEmail("harry@gmail.c")).toThrow(emailError)
+    })
+    it("Accepts emails that have at least two characters for TLD", () => {
+        expect(() => validateEmail("harry@gmail.co")).not.toThrow()
+    })
+    it("Rejects emails with empty TLD", () => {
+        expect(() => validateEmail("harry@gmail.")).toThrow(emailError)
+    })
+    it("Rejects whitespace in username", () => {
+        expect(() => validateEmail("harry @gmail.com")).toThrow(emailError)
+    })
+    it("Rejects whitespace in domain", () => {
+        expect(() => validateEmail("harry@gmail .com")).toThrow(emailError)
+    })
+    it("Rejects whitespace in TLD", () => {
+        expect(() => validateEmail("harry@gmail. com")).toThrow(emailError)
     })
 })
 
 describe("#password", () => {
-    it("Rejects password if boolean", () => {
-        expect(() => validatePassword(false as unknown as string)).toThrow(passwordError)
-    })
-    it("Rejects password if number", () => {
-        expect(() => validatePassword(123 as unknown as string)).toThrow(passwordError)
-    })
-    it("Rejects password if object", () => {
-        expect(() => validatePassword({} as unknown as string)).toThrow(passwordError)
+    it.each(typeTest)("Rejects input : $reason", ({ input }) => {
+        expect(() => validatePassword((input))).toThrow(passwordError)
     })
     it("Rejects password if less that 8 characters", () => {
-        expect(() => validatePassword("123456")).toThrow(passwordError)
+        expect(() => validatePassword("1234567")).toThrow(passwordError)
     })
     it("Accepts valid password", () => {
-        expect(() => validatePassword("password123")).not.toThrow()
+        expect(() => validatePassword("12345678")).not.toThrow()
+    })
+    it("Rejects empty password", () => {
+        expect(() => validatePassword("")).toThrow(passwordError)
     })
 })
 
