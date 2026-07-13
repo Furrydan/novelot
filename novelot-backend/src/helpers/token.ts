@@ -5,8 +5,11 @@ import { novelotError } from "./error.ts"
 
 export function createAccessToken(userID: mongoose.Types.ObjectId) {
     const secret = process.env.ACCESS_TOKEN_SECRET
-    if (!secret) {
+    if (typeof secret === "undefined") {
         throw new novelotError(500, "Access Token Secret Key is not defined")
+    }
+    if (!(userID instanceof mongoose.Types.ObjectId)) {
+        throw new novelotError(500, "Bad UserID")
     }
     return jwt.sign({ userID }, secret, {
         expiresIn: '15m'
@@ -15,8 +18,11 @@ export function createAccessToken(userID: mongoose.Types.ObjectId) {
 
 export function createRefreshToken(userID: mongoose.Types.ObjectId) {
     const secret = process.env.REFRESH_TOKEN_SECRET
-    if (!secret) {
+    if (typeof secret === "undefined") {
         throw new novelotError(500, "Refresh Token Secret Key is not defined")
+    }
+    if (!(userID instanceof mongoose.Types.ObjectId)) {
+        throw new novelotError(500, "Bad UserID")
     }
     return jwt.sign({ userID }, secret, {
         expiresIn: '7d'
