@@ -40,8 +40,9 @@ async function loginUser(email: string, password: string): Promise<tokens> {
         throw new novelotError(401, "Email or Password is incorrect")
     }
 
-    const accessToken: string = createAccessToken(user._id)
+
     const refreshToken: string = createRefreshToken(user._id)
+    const accessToken: string = createAccessToken(user._id)
 
     await userModel.addRefreshToken(email, refreshToken)
 
