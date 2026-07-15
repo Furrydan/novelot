@@ -20,7 +20,7 @@ async function getNovelByText(search: string, page: number, limit: number): Prom
 
 export default { findAllNovels, getNovelByText }
 
-function fuzzyFind(search: string, name: string): number {
+export function fuzzyFind(search: string, name: string): number {
     let points: number = 0
 
     search = search.toLocaleLowerCase()
@@ -44,12 +44,14 @@ function fuzzyFind(search: string, name: string): number {
 
             if (searchWords[searchWordIndex] === nameWords[nameWordIndex]) {
                 points += 50
-                continue
             }
 
+            const currentWord = searchWords[searchWordIndex]
+            const currentNameWord = nameWords[nameWordIndex]
+
             // If first first letter matches 3 points
-            if (searchWords[searchWordIndex][searchWordLetterIndex] === nameWords[nameWordIndex][nameWordLetterIndex]) {
-                points += 2
+            if (currentWord[searchWordLetterIndex] === currentNameWord[nameWordLetterIndex]) {
+                points += 10
                 nameWordLetterIndex++
                 searchWordLetterIndex++
                 lastWordMatched = true
@@ -57,7 +59,7 @@ function fuzzyFind(search: string, name: string): number {
 
 
             while (nameWordLetterIndex < nameWords[nameWordIndex].length && searchWords[searchWordIndex].length) {
-                if (searchWords[searchWordIndex][searchWordLetterIndex] === nameWords[nameWordIndex][nameWordLetterIndex]) {
+                if (currentWord[searchWordLetterIndex] === currentNameWord[nameWordLetterIndex]) {
                     // If consecutive words match, three points are added, else only 1
                     if (lastWordMatched) {
                         points += 3
@@ -66,12 +68,12 @@ function fuzzyFind(search: string, name: string): number {
                         points++
                         lastWordMatched = true
                     }
+                    searchWordLetterIndex++
                 }
                 else {
                     lastWordMatched = false
                 }
                 nameWordLetterIndex++
-                searchWordLetterIndex++
             }
 
         }
