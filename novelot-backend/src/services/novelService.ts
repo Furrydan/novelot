@@ -6,7 +6,6 @@ async function findAllNovels(page: number, limit: number): Promise<Novel[]> {
     const novelList: Novel[] = await novelModel.getAllNovels(page, limit)
     return novelList
 }
-
 async function getNovelByText(search: string, page: number, limit: number): Promise<Novel[]> {
     const novelList: Novel[] = await novelModel.getNovelsWithMatchingChar(search[0])
     const matchingNovels: Novel[] = novelList.map(novel => ({ novel: novel, points: fuzzyFind(search, novel.title) }))
@@ -21,63 +20,45 @@ async function getNovelByText(search: string, page: number, limit: number): Prom
 export default { findAllNovels, getNovelByText }
 
 export function fuzzyFind(search: string, name: string): number {
-    let points: number = 0
-
     search = search.toLocaleLowerCase()
     name = name.toLocaleLowerCase()
 
-    if (search === name) {
-        points = 999
-        return points
-    }
+    let match: number[][] = new Array(search.length).fill(null)
+        .map(() => new Array(name.length).fill(null))
 
-    let searchWords: string[] = search.split(" ")
-    let nameWords: string[] = name.split(" ")
+    let points: number = 0
 
-    // Search through each word
 
-    for (let searchWordIndex = 0; searchWordIndex < searchWords.length; searchWordIndex++) {
-        for (let nameWordIndex = 0; nameWordIndex < nameWords.length; nameWordIndex++) {
-            let nameWordLetterIndex = 0
-            let searchWordLetterIndex = 0
-            let lastWordMatched = false
+    for (let j = 0; j < name.length; j++) {
 
-            if (searchWords[searchWordIndex] === nameWords[nameWordIndex]) {
-                points += 50
+        if (search[0] === name[j]) {
+            // If at boundary grant 10 points
+            if (j === 0 || name[j - 1] === " ") {
+                match[0][j] = 10
             }
-
-            const currentWord = searchWords[searchWordIndex]
-            const currentNameWord = nameWords[nameWordIndex]
-
-            // If first first letter matches 3 points
-            if (currentWord[searchWordLetterIndex] === currentNameWord[nameWordLetterIndex]) {
-                points += 10
-                nameWordLetterIndex++
-                searchWordLetterIndex++
-                lastWordMatched = true
+            else {
+                match[0][j] = 1
             }
-
-
-            while (nameWordLetterIndex < nameWords[nameWordIndex].length && searchWords[searchWordIndex].length) {
-                if (currentWord[searchWordLetterIndex] === currentNameWord[nameWordLetterIndex]) {
-                    // If consecutive words match, three points are added, else only 1
-                    if (lastWordMatched) {
-                        points += 3
-                    }
-                    else {
-                        points++
-                        lastWordMatched = true
-                    }
-                    searchWordLetterIndex++
-                }
-                else {
-                    lastWordMatched = false
-                }
-                nameWordLetterIndex++
-            }
-
         }
     }
 
+    points = Math.max(...match[0], points)
+
+    for (let i = 1; i < search.length; i++) {
+        for (let j = 0; j < name.length; j++) {
+            if (search[i] === name[j]) {
+
+                const max = Math.max(0,
+                    ...match[i - 1].slice(0, j),
+                    match[i - 1][j - 1] ? match[i - 1][j - 1] + 7 : 0)
+
+                match[i][j] = max + 1
+            }
+        }
+        points = Math.max(...match[i], points)
+    }
+
     return points
+
 }
+
