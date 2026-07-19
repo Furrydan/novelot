@@ -11,7 +11,10 @@ async function getAllNovels(req: Request, res: Response) {
 }
 
 async function getNovelByName(req: Request, res: Response) {
-    const search: string = String(req.query.search) || ""
+    let search: string = String(req.query.search)
+    if (search === "undefined") {
+        search = ""
+    }
     const page: number = Number(req.query.page) || 1
     const limit: number = Number(req.query.limit) || 20
 

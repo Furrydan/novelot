@@ -6,7 +6,7 @@ export interface User extends Document {
     refreshToken: string
 }
 
-export type UserInput {
+export type UserInput = {
     email: string,
     password: string,
     refreshToken: string
