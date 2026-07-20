@@ -3,6 +3,7 @@ import novelController from "../../controllers/novelController.js";
 import novelService from "../../services/novelService.js";
 import novelList from "../../assets/novelList.json" with {type: 'json'}
 import { Response, Request } from "express";
+import { type Novel } from "../../types/Novel.ts";
 
 const page: number = 2
 const limit: number = 10
@@ -53,6 +54,13 @@ describe("#getAllNovels", () => {
         expect(res.status).toHaveBeenCalledWith(200)
         expect(res.json).toHaveBeenCalledWith(novelList)
     })
+
+    it("Returns empty string if database return wrong data", async () => {
+        vi.mocked(novelService.findAllNovels).mockResolvedValue([{ x: "Hello" }, { x: "World" }] as unknown as Novel[])
+        await novelController.getAllNovels(req, res)
+
+        expect(res.json).toHaveBeenCalledWith([])
+    })
 })
 
 describe("#getNovelByName", () => {
@@ -97,4 +105,10 @@ describe("#getNovelByName", () => {
         expect(res.json).toHaveBeenCalledWith(novelList)
     })
 
+    it("Returns empty string if database return wrong data", async () => {
+        vi.mocked(novelService.getNovelByText).mockResolvedValue([{ x: "Hello" }, { x: "World" }] as unknown as Novel[])
+        await novelController.getAllNovels(req, res)
+
+        expect(res.json).toHaveBeenCalledWith([])
+    })
 })
