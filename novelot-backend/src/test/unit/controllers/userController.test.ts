@@ -1,24 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Response, Request } from "express";
-import userController from "../../controllers/userController.js";
-import userService from "../../services/userService.js";
-import { sendAccessToken, sendRefreshToken } from "../../helpers/token.ts";
-import { validateEmail, validatePassword } from "../../helpers/validator.ts";
-import { register } from "node:module";
+import userController from "@controllers/userController.js";
+import userService from "@services/userService.js";
+import { sendAccessToken, sendRefreshToken } from "@helpers/token.ts";
+import { validateEmail, validatePassword } from "@helpers/validator.ts";
 
-vi.mock("../../services/userService.ts", () => ({
+vi.mock("@services/userService.ts", () => ({
     default: {
         loginUser: vi.fn(),
         registerUser: vi.fn()
     }
 }))
 
-vi.mock("../../helpers/token.ts", () => ({
+vi.mock("@helpers/token.ts", () => ({
     sendAccessToken: vi.fn(),
     sendRefreshToken: vi.fn()
 }))
 
-vi.mock("../../helpers/validator.ts", () => ({
+vi.mock("@helpers/validator.ts", () => ({
     validateEmail: vi.fn(),
     validatePassword: vi.fn()
 }))

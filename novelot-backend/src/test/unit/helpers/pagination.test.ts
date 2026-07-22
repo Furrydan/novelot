@@ -1,5 +1,5 @@
-import { novelotError } from "../../helpers/error.ts";
-import { paginate } from "../../helpers/pagination.ts";
+import { novelotError } from "@helpers/error.ts";
+import { paginate } from "@helpers/pagination.ts";
 import { describe, it, expect } from "vitest";
 
 const list = new Array(101).fill(1)

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { fuzzyFind } from "../../helpers/fuzzyFinder.ts"
+import { fuzzyFind } from "@helpers/fuzzyFinder.ts"
 
 describe("#fuzzy finder", () => {
     it("If the first letter matches, points are at least 10", () => {

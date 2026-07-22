@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-import novelService from "../services/novelService.js";
-import { isNovel, Novel } from "../types/Novel.js";
+import novelService from "@services/novelService.js";
+import { isNovel, Novel } from "@apptypes/Novel.js";
 
 async function getAllNovels(req: Request, res: Response) {
     const page: number = Number(req.query.page) || 1

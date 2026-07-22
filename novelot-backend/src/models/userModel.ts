@@ -1,6 +1,6 @@
 import mongoose, { Model } from "mongoose";
-import { type UserInput, User } from "../types/User.js";
-import { novelotError } from "../helpers/error.js"
+import { type UserInput, User } from "@apptypes/User.js";
+import { novelotError } from "@helpers/error.js"
 
 const userSchema = new mongoose.Schema<User>({
     email: String,

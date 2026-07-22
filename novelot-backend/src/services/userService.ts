@@ -1,8 +1,8 @@
-import userModel from "../models/userModel.js";
+import userModel from "@models/userModel.js";
 import { hash, compare } from "bcryptjs"
-import { createAccessToken, createRefreshToken } from "../helpers/token.js"
-import { type User } from "../types/User.js"
-import { novelotError } from "../helpers/error.js";
+import { createAccessToken, createRefreshToken } from "@helpers/token.js"
+import { type User } from "@apptypes/User.js"
+import { novelotError } from "@helpers/error.js";
 
 type tokens = {
     accessToken: string,

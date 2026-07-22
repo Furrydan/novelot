@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { fuzzyFind } from "../../helpers/fuzzyFinder.ts";
-import novelService from "../../services/novelService.ts";
-import novelModel from "../../models/novelModel.ts";
-import novelList from "../../assets/novelList.json" with {type: 'json'}
-import { type Novel, isNovel } from "../../types/Novel.ts";
+import { fuzzyFind } from "@helpers/fuzzyFinder.ts";
+import novelService from "@services/novelService.ts";
+import novelModel from "@models/novelModel.ts";
+import novelList from "@assets/novelList.json" with {type: 'json'}
+import { type Novel, isNovel } from "@apptypes/Novel.ts";
 
 for (let i = 0; i < novelList.length; i++) {
     if (!isNovel(novelList[i])) {
@@ -11,14 +11,14 @@ for (let i = 0; i < novelList.length; i++) {
     }
 }
 
-vi.mock("../../models/novelModel.ts", () => ({
+vi.mock("@models/novelModel.ts", () => ({
     default: {
         getAllNovels: vi.fn(),
         getNovelsWithMatchingChar: vi.fn()
     }
 }))
 
-vi.mock("../../helpers/fuzzyFinder.ts", () => ({
+vi.mock("@helpers/fuzzyFinder.ts", () => ({
     fuzzyFind: vi.fn()
 }))
 

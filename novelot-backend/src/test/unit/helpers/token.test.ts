@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import mongoose from "mongoose"
 import jwt from "jsonwebtoken"
-import { createAccessToken, createRefreshToken, sendAccessToken, sendRefreshToken } from "../../helpers/token.ts";
-import { novelotError } from "../../helpers/error.ts";
+import { createAccessToken, createRefreshToken, sendAccessToken, sendRefreshToken } from "@helpers/token.ts";
+import { novelotError } from "@helpers/error.ts";
 import { Response } from "express";
 
 const falseTypes = [

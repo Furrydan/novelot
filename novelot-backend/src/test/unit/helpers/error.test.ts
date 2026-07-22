@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest"
-import { novelotError, errorHandler } from "../../helpers/error.ts"
+import { novelotError, errorHandler } from "@helpers/error.ts"
 import { Request, Response, NextFunction } from "express"
 
 describe("#Error Handler", () => {

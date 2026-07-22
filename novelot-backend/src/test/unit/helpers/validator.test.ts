@@ -1,5 +1,5 @@
-import { novelotError } from "../../helpers/error.js"
-import { validateEmail, validatePassword } from "../../helpers/validator.js"
+import { novelotError } from "@helpers/error.js"
+import { validateEmail, validatePassword } from "@helpers/validator.js"
 import { describe, expect, it } from "vitest"
 
 const emailError = new novelotError(400, "Bad Email")

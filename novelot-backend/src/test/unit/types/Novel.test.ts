@@ -1,4 +1,4 @@
-import { isNovel } from "../../types/Novel.ts";
+import { isNovel } from "@apptypes/Novel.ts";
 import { describe, it, expect } from "vitest";
 
 describe("#isNovel", () => {

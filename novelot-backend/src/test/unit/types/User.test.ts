@@ -1,4 +1,4 @@
-import { isUser } from "../../types/User.ts";
+import { isUser } from "@apptypes/User.ts";
 import { describe, it, expect } from "vitest";
 
 describe("#isUser", () => {

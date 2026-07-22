@@ -1,5 +1,5 @@
 import express from "express"
-import userController from "../controllers/userController.js"
+import userController from "@controllers/userController.js"
 
 console.log("User Router Loaded")
 

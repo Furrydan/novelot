@@ -1,7 +1,7 @@
-import novelModel from "../models/novelModel.js"
-import { fuzzyFind } from "../helpers/fuzzyFinder.ts";
-import { Novel } from "../types/Novel.js";
-import { paginate } from "../helpers/pagination.ts";
+import novelModel from "@models/novelModel.js"
+import { fuzzyFind } from "@helpers/fuzzyFinder.ts";
+import { Novel } from "@apptypes/Novel.js";
+import { paginate } from "@helpers/pagination.ts";
 
 
 async function findAllNovels(page: number, limit: number): Promise<Novel[]> {

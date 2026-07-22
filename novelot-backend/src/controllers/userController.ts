@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
-import userService from "../services/userService.js"
-import { sendAccessToken, sendRefreshToken } from "../helpers/token.js"
-import { validateEmail, validatePassword } from "../helpers/validator.js"
+import userService from "@services/userService.js"
+import { sendAccessToken, sendRefreshToken } from "@helpers/token.js"
+import { validateEmail, validatePassword } from "@helpers/validator.js"
 
 async function login(req: Request, res: Response) {
     const body = req.body
@@ -10,8 +10,8 @@ async function login(req: Request, res: Response) {
     validatePassword(body.password)
 
     const { accessToken, refreshToken } = await userService.loginUser(body.email, body.password)
-    sendAccessToken(accessToken, res)
     sendRefreshToken(refreshToken, res)
+    sendAccessToken(accessToken, res)
 }
 
 async function register(req: Request, res: Response) {

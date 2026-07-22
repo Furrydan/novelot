@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import userService from "../../services/userService.js"
-import userModel from "../../models/userModel.js"
-import { novelotError } from "../../helpers/error.js"
+import userService from "@services/userService.js"
+import userModel from "@models/userModel.js"
+import { novelotError } from "@helpers/error.js"
 import { hash, compare } from "bcryptjs"
 import mongoose from "mongoose"
-import { User } from "../../types/User.ts"
+import { User } from "@apptypes/User.ts"
 import jwt from "jsonwebtoken"
 
 const email = "harry@gmail.com"
@@ -18,7 +18,7 @@ const user = {
 const accessTokenKey = "test1"
 const refreshTokenKey = "test2"
 
-vi.mock("../../models/userModel.ts", () => ({
+vi.mock("@models/userModel.js", () => ({
     default: {
         checkEmailExists: vi.fn(),
         addNewUser: vi.fn(),

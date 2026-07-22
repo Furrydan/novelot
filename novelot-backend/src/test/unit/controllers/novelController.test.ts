@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import novelController from "../../controllers/novelController.js";
-import novelService from "../../services/novelService.js";
-import novelList from "../../assets/novelList.json" with {type: 'json'}
+import novelController from "@controllers/novelController.js";
+import novelService from "@services/novelService.js";
+import novelList from "@assets/novelList.json" with {type: 'json'}
 import { Response, Request } from "express";
-import { type Novel } from "../../types/Novel.ts";
+import { type Novel } from "@apptypes/Novel.ts";
 
 const page: number = 2
 const limit: number = 10
 const search: string = "test"
 
-vi.mock("../../services/novelService.ts", () => ({
+vi.mock("@services/novelService.ts", () => ({
     default: {
         findAllNovels: vi.fn(),
         getNovelByText: vi.fn()

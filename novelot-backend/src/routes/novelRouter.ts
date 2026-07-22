@@ -1,5 +1,5 @@
 import express from "express"
-import novelController from "../controllers/novelController.js"
+import novelController from "@controllers/novelController.js"
 
 console.log("NovelRouter loaded")
 

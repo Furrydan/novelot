@@ -1,5 +1,5 @@
 import mongoose, { Model } from "mongoose";
-import type { Novel } from "../types/Novel.js"
+import type { Novel } from "@apptypes/Novel.js"
 
 const novelSchema = new mongoose.Schema<Novel>({
     id: Number,
