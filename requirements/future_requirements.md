@@ -1,1 +1,0 @@
-- AI scans through story and finds additional tags and asks author to add them if they apply. 

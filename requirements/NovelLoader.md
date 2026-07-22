@@ -1,5 +1,0 @@
-- In order to reduce load times, first 4 pages should be preloaded.
-  - Only make request every even page.
-  - Do not make request if data already exists.
-- When user reaches page 2, pages up till page 6 should be preloaded.
-- Loading icon to show that pages are loading
