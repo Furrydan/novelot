@@ -3,8 +3,8 @@ import novelService from "@services/novelService.js";
 import { isNovel, Novel } from "@apptypes/Novel.js";
 
 async function getAllNovels(req: Request, res: Response) {
-    const page: number = Number(req.query.page) || 1
-    const limit: number = Number(req.query.limit) || 20
+    const page: number = validPage(req)
+    const limit: number = validLimit(req)
     const novelList: Novel[] = await novelService.findAllNovels(page, limit)
     const validNovels: Novel[] = novelList.filter(novel => isNovel(novel))
     res.status(200).json(validNovels)
@@ -15,8 +15,8 @@ async function getNovelByName(req: Request, res: Response) {
     if (search === "undefined") {
         search = ""
     }
-    const page: number = Number(req.query.page) || 1
-    const limit: number = Number(req.query.limit) || 20
+    const page: number = validPage(req)
+    const limit: number = validLimit(req)
 
     const novelList: Novel[] = await novelService.getNovelByText(search, page, limit)
     const validNovels: Novel[] = novelList.filter(novel => isNovel(novel))
@@ -24,3 +24,17 @@ async function getNovelByName(req: Request, res: Response) {
 }
 
 export default { getAllNovels, getNovelByName }
+
+function validPage(req: Request): number {
+    if (req.query.page === undefined) {
+        return 1
+    }
+    return Number(req.query.page)
+}
+
+function validLimit(req: Request): number {
+    if (req.query.limit === undefined) {
+        return 20
+    }
+    return Number(req.query.limit)
+}

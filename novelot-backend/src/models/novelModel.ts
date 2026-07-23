@@ -1,5 +1,6 @@
 import mongoose, { Model } from "mongoose";
 import type { Novel } from "@apptypes/Novel.js"
+import { paginate } from "@/helpers/pagination.ts";
 
 const novelSchema = new mongoose.Schema<Novel>({
     id: Number,
@@ -13,8 +14,8 @@ const novelSchema = new mongoose.Schema<Novel>({
 
 const novelModel: Model<Novel> = mongoose.model('Novel', novelSchema, "novels")
 
-function getAllNovels(page: number, limit: number): Promise<Novel[]> {
-    return novelModel.find().limit(limit * 1).skip((page - 1) * limit).lean()
+async function getAllNovels(page: number, limit: number): Promise<Novel[]> {
+    return paginate(await novelModel.find().lean(), page, limit)
 }
 
 function getNovelsWithMatchingChar(char: string): Promise<Novel[]> {

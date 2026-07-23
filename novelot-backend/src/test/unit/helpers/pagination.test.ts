@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 
 const list = new Array(101).fill(1)
 const list2 = new Array(100).fill(1)
-const error = new novelotError(500, "Invalid Page")
+const error = new novelotError(400, "Invalid Page")
 
 describe("#paginate", () => {
     it("Paginates list correctly", () => {
