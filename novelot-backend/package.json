@@ -8,8 +8,8 @@
     "dev": "nodemon src/index.ts",
     "start": "tsx src/index.ts",
     "test": "vitest --coverage",
-    "test:unit": "vitest run --coverage src/test/unit",
-    "test:integrations": "vitest run --coverage src/test/integrations"
+    "test:unit": "vitest run src/test/unit",
+    "test:integrations": "vitest run src/test/integrations"
   },
   "keywords": [],
   "author": "",
