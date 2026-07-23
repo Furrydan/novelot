@@ -32,7 +32,7 @@ async function addRefreshToken(email: string, refreshToken: string): Promise<boo
     const newUser: User | null = await userModel.findOneAndUpdate(
         { email },
         { $set: { refreshToken } },
-        { new: true })
+        { returnDocument: 'after' })
     if (!newUser) {
         throw new novelotError(500, "Failed to Update Refresh Token")
     }

@@ -49,4 +49,37 @@ describe("POST /api/users/login", () => {
         expect(res.body.accessToken).toEqual(expect.any(String))
         expect(res.headers["set-cookie"][0]).toMatch(/refreshToken=/)
     })
+
+    it("return 401 when the email is incorrect", async () => {
+        const hashedPassword = await hash("correct-password", 10)
+        await mongoose.connection.db?.collection("users").insertOne({
+            email: "test@example.com",
+            password: hashedPassword,
+            refreshToken: ""
+        })
+
+        const res = await request(app)
+            .post("/api/users/login")
+            .send({ email: "false@example.com", password: "correct-password" })
+
+        expect(res.status).toBe(401)
+        expect(res.body.message).toBe("Email or Password is incorrect")
+    })
+
+    it("returns 401 when the password is incorrect", async () => {
+        const hashedPassword = await hash("correct-password", 10)
+        await mongoose.connection.db?.collection("users").insertOne({
+            email: "test@example.com",
+            password: hashedPassword,
+            refreshToken: ""
+        })
+
+        const res = await request(app)
+            .post("/api/users/login")
+            .send({ email: "test@example.com", password: "incorrect-password" })
+
+        expect(res.status).toBe(401)
+        expect(res.body.message).toBe("Email or Password is incorrect")
+
+    })
 })
