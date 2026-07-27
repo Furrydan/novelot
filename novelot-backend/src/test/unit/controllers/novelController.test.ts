@@ -96,11 +96,11 @@ describe("#getNovelByName", () => {
     })
 
     it("Can use default values", async () => {
-        req = { query: { search: "lady" } } as unknown as Request
+        req = { query: {} } as unknown as Request
 
         await novelController.getNovelByName(req, res)
 
-        expect(novelService.getNovelByText).toHaveBeenCalledWith("lady", 1, 20)
+        expect(novelService.getNovelByText).toHaveBeenCalledWith("", 1, 20)
         expect(res.status).toHaveBeenCalledWith(200)
         expect(res.json).toHaveBeenCalledWith(novelList)
     })

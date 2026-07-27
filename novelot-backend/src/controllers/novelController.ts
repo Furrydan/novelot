@@ -1,7 +1,6 @@
 import { Request, Response } from "express"
 import novelService from "@services/novelService.js";
 import { isNovel, Novel } from "@apptypes/Novel.js";
-import { novelotError } from "@/helpers/error.ts";
 
 async function getAllNovels(req: Request, res: Response) {
     const page: number = validPage(req)
@@ -13,8 +12,8 @@ async function getAllNovels(req: Request, res: Response) {
 
 async function getNovelByName(req: Request, res: Response) {
     let search: string = String(req.query.search)
-    if (search === 'undefined' || search === "") {
-        throw new novelotError(400, "Bad Input")
+    if (search === "undefined") {
+        search = ""
     }
     const page: number = validPage(req)
     const limit: number = validLimit(req)
