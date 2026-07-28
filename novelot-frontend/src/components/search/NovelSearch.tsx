@@ -7,7 +7,7 @@ function NovelSearch() {
     const [currentPage, setCurrentPage] = useState<number>(1)
     const [searchInput, setSearchInput] = useState<string>("")
     const limit: number = 24
-    const novels = useNovels(searchInput, currentPage, limit)
+    const novels = useNovels(searchInput, currentPage, setCurrentPage, limit)
 
     const updateSearch = (value: string) => {
         setSearchInput(value)

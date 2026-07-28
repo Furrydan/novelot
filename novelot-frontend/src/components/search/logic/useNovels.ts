@@ -6,7 +6,7 @@ const api = axios.create({
     baseURL: `${import.meta.env.VITE_API_URL ?? "http://localhost:1714"}/api/novels`
 })
 
-function useNovels(search: string, currentPage: number, limit: number) {
+function useNovels(search: string, currentPage: number, setCurrentPage: React.Dispatch<React.SetStateAction<number>>, limit: number) {
     const [novelList, setNovelList] = useState<Novel[]>([])
     const prevSearchRef = useRef(search)
 
@@ -16,6 +16,11 @@ function useNovels(search: string, currentPage: number, limit: number) {
                 setNovelList(res.data.filter(isNovel))
             }
         })
+            .catch(error => {
+                if (error.response.status === 400 && error.response.data.message === "Invalid Page") {
+                    setCurrentPage(prev => prev - 1)
+                }
+            })
     }, [])
 
     useEffect(() => {

@@ -7,11 +7,11 @@ PS: The project is still in development.
 
 ## Stack
 
-| Utility  | Tool  | Dependencies  |
-|---       |---    |---            |
-| Frontend| React  | Axios, React Router  |
-| Backend | Nodejs | Express  |
-| Databse | MongoDB|
+| Utility  | Tool  | Dependencies           |
+|---       |---    |---                     |
+| Frontend| React  | Axios, React Router    |
+| Backend | Nodejs | Express                |
+| Databse | MongoDB|                        |
 
 ## How to start Novelot
 
@@ -41,4 +41,4 @@ In order to be able to run the project, you need certain environment variables.
 3. REFRESH_TOKEN_SECRET - A custom key to generate your refresh token.
 
 ### Frontend
-No environment variables at the moment.
+1. VITE_API_URL - This is the url of the api for the backend.
