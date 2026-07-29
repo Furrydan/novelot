@@ -9,7 +9,10 @@
     "paths": {
       "@/*": ["src/*"],
       "@assets/*": ["src/assets/*"],
-      "@novelot-types/*" : ["src/types/*"]
+      "@novelot-types/*" : ["src/types/*"],
+      "@api/*" : ["src/api/*"],
+      "@components/*" : ["src/components/*"],
+      "@test/*" : ["src/test/*"]
     }
   }
 }

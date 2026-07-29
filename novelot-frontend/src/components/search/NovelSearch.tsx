@@ -1,7 +1,7 @@
-import NovelGrid from "@/components/search/grid/NovelGrid";
-import { type Novel } from "@/types/Types.js";
+import NovelGrid from "@components/search/grid/NovelGrid";
+import { type Novel } from "@novelot-types/Novel";
 import { useState } from "react";
-import useNovels from "./logic/useNovels";
+import useNovels from "./logic/UseNovels";
 
 function NovelSearch() {
     const [currentPage, setCurrentPage] = useState<number>(1)

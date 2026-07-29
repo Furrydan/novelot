@@ -1,5 +1,5 @@
 import "./App.css";
-import NovelSearch from "./components/search/NovelSearch.tsx";
+import NovelSearch from "@components/search/NovelSearch";
 
 function App() {
   return <NovelSearch />;

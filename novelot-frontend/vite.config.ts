@@ -13,6 +13,9 @@ export default defineConfig({
         alias: {
             "@assets": path.resolve(__dirname, "./src/assets"),
             "@novelot-types": path.resolve(__dirname, "./src/types"),
+            "@api": path.resolve(__dirname, "./src/api"),
+            "@components": path.resolve(__dirname, "./src/components"),
+            "@test": path.resolve(__dirname, "./src/test"),
             "@": path.resolve(__dirname, "./src"),
         },
     },

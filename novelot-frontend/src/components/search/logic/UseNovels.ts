@@ -1,10 +1,7 @@
-import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isNovel, type Novel } from "../../../types/Types";
+import { isNovel, type Novel } from "@novelot-types/Novel";
+import { api } from "@api/novelClients"
 
-const api = axios.create({
-    baseURL: `${import.meta.env.VITE_API_URL ?? "http://localhost:1714"}/api/novels`
-})
 
 function useNovels(search: string, currentPage: number, setCurrentPage: React.Dispatch<React.SetStateAction<number>>, limit: number) {
     const [novelList, setNovelList] = useState<Novel[]>([])

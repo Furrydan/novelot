@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import NovelGrid from "./NovelGrid"
-import { type Novel } from "@novelot-types/Types"
+import { type Novel } from "@novelot-types/Novel"
 
 describe("NovelGrid", () => {
     const id = 1

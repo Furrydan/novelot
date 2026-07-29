@@ -1,8 +1,8 @@
 import "./NovelGrid.css";
-import Tag from "@/components/search/tags/Tag";
+import Tag from "@components/search/tags/Tag";
 import { FaHeart } from "react-icons/fa";
 import thumbnail from "@assets/Elise.png";
-import type { Novel } from "@/types/Types.ts";
+import type { Novel } from "@novelot-types/Novel";
 
 function NovelGrid({ novel }: { novel: Novel }) {
     return (

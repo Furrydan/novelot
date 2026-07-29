@@ -2,11 +2,11 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import user from "@testing-library/user-event"
 import NovelSearch from "./NovelSearch";
-import useNovels from "./logic/useNovels";
+import useNovels from "./logic/UseNovels";
 import novelList from "@assets/novelList.json" with {type: 'json'}
-import { type Novel, isNovel } from "../../types/Types";
+import { type Novel, isNovel } from "@novelot-types/Novel";
 
-vi.mock("./logic/useNovels.js", () => ({
+vi.mock("./logic/UseNovels", () => ({
     default: vi.fn()
 }))
 
