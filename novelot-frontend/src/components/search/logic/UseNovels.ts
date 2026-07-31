@@ -12,11 +12,17 @@ function useNovels(search: string, currentPage: number, setCurrentPage: React.Di
             if (Array.isArray(res.data)) {
                 setNovelList(res.data.filter(isNovel))
             }
+            else {
+                setNovelList([])
+            }
         })
             .catch(error => {
                 if (error.response.status === 400 && error.response.data.message === "Invalid Page") {
                     setCurrentPage(prev => prev - 1)
                 }
+
+                console.error("Failed to load novels", error)
+                setNovelList([])
             })
     }, [])
 
