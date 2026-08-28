@@ -1,0 +1,49 @@
+.searchbar {
+  position: relative;
+  width: 100%;
+}
+
+.searchbar-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5em;
+  border: none;
+  border-radius: 4px;
+}
+
+.searchbar-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  overflow: hidden;
+  background-color: #fff;
+  color: #000;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: max-height 0.2s ease-in-out;
+}
+
+.searchbar-dropdown-closed {
+  max-height: 0;
+}
+
+.searchbar-dropdown--open {
+  max-height: 500px;
+}
+
+.searchbar-dropdown-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.searchbar-dropdown-item {
+  padding: 0.5em;
+  border-bottom: 1px solid #ccc;
+}
+
+.searchbar-dropdown-item:last-child {
+  border-bottom: none;
+}
