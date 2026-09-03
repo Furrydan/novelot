@@ -24,6 +24,27 @@
   font-size: 1rem;
 }
 
+.auth-form__password-container {
+  position: relative;
+}
+
+.auth-form__password-container .auth-form__input {
+  padding-right: 2.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.auth-form__password-container__button {
+  all: unset;
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 1;
+  font-size: 1.25rem;
+}
+
 .auth-form__button {
   padding: 0.5rem;
   background-color: #000000;
