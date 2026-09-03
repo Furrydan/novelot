@@ -1,0 +1,23 @@
+.usermenu {
+  position: relative;
+}
+
+.usermenu__trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+}
+
+.usermenu__trigger:hover {
+  opacity: 0.8;
+}
+
+.usermenu__icon {
+  font-size: 1.25rem;
+}

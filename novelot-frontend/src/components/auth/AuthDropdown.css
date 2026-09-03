@@ -1,0 +1,60 @@
+.auth-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 280px;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  padding: 1rem;
+  color: #000000;
+}
+
+.auth-dropdown__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.auth-dropdown__tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.auth-dropdown__tab {
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666666;
+  border-bottom: 2px solid transparent;
+}
+
+.auth-dropdown__tab:hover {
+  color: #000000;
+}
+
+.auth-dropdown__tab--active {
+  color: #000000;
+  border-bottom-color: #000000;
+  font-weight: bold;
+}
+
+.auth-dropdown__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-dropdown__close:hover {
+  color: #000000;
+}
