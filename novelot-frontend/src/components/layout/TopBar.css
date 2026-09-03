@@ -17,3 +17,7 @@
 .searchbar-wrapper {
   width: 300px;
 }
+
+.topbar .usermenu {
+  margin-left: auto;
+}
