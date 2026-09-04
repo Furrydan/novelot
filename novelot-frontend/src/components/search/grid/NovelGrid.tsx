@@ -25,8 +25,8 @@ function NovelGrid({ novel }: { novel: Novel }) {
             </div>
             <p className="novel-grid-description">{novel.description}</p>
             <div className="tag-bar">
-                {novel.tags.map((tag: string, index: number) => (
-                    <Tag key={index} tag={tag} />
+                {novel.tags.map((tag: string) => (
+                    <Tag key={tag} tag={tag} />
                 ))}
             </div>
         </div>

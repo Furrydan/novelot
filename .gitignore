@@ -10,3 +10,5 @@ coverage/
 .npm/
 *.tsbuildinfo
 coverage/
+AGENTS.md
+.opencodeignore

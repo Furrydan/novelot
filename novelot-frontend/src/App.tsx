@@ -5,7 +5,7 @@ import Page from "@components/layout/Page"
 function App() {
     return (
         <Page>
-            <NovelSearch />;
+            <NovelSearch />
         </Page>)
 }
 
