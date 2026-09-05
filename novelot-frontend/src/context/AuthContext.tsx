@@ -1,4 +1,4 @@
-import { createContext, use, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useRef, useState, type ReactNode } from "react";
 import { authApi } from "@api/novelClients";
 
 export type User = {
@@ -61,12 +61,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         register,
     };
 
-    return <AuthContext value={value}>{children}</AuthContext>;
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
-    const context = use(AuthContext);
+    const context = useContext(AuthContext);
     if (context === undefined) {
         throw new Error("useAuth must be used within an AuthProvider");
     }

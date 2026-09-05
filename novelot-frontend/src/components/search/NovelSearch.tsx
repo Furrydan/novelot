@@ -25,9 +25,9 @@ function NovelSearch() {
                 ))}
             </div>
             <div className="novel-search-page-button-holder">
-                <button className="novel-search-page-button" onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}>Previous Page</button>
+                <button className="novel-search-page-button" onClick={_ => setCurrentPage(Math.max(currentPage - 1, 1))}>Previous Page</button>
                 <span className="novel-search-page-number">{currentPage}</span>
-                <button className="novel-search-page-button" onClick={() => { setCurrentPage(currentPage + 1) }}>Next Page</button>
+                <button className="novel-search-page-button" onClick={_ => { setCurrentPage(currentPage + 1) }}>Next Page</button>
             </div>
         </>
     );
