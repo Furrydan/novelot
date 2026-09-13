@@ -3,6 +3,7 @@ import request from "supertest";
 import mongoose from "mongoose"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { hash } from "bcryptjs"
+import { hashRefreshToken } from "@helpers/token.js"
 import app from "@/app.js"
 
 let mongoServer: MongoMemoryServer
@@ -44,7 +45,9 @@ describe("POST /api/users/login", () => {
 
         const rawUser = await mongoose.connection.db?.collection("users").findOne({ email: "test@example.com" })
 
-        expect(rawUser?.refreshToken).toBe(cookieRefreshToken)
+        expect(rawUser).not.toBeNull()
+        expect(rawUser!.refreshToken).not.toBe(cookieRefreshToken)
+        expect(rawUser!.refreshToken).toBe(hashRefreshToken(cookieRefreshToken))
 
         expect(res.body.accessToken).toEqual(expect.any(String))
         expect(res.headers["set-cookie"][0]).toMatch(/refreshToken=/)

@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import userService from "@services/userService.js"
 import { sendAccessToken, sendRefreshToken } from "@helpers/token.js"
 import { validateEmail, validatePassword } from "@helpers/validator.js"
+import { novelotError } from "@/helpers/error.js"
 
 async function login(req: Request, res: Response) {
     const body = req.body
@@ -24,4 +25,16 @@ async function register(req: Request, res: Response) {
     res.status(201).json({ "message": "User Created" })
 }
 
-export default { login, register }
+async function refresh(req: Request, res: Response) {
+    const refreshToken = req.cookies.refreshToken
+
+    if (!refreshToken) {
+        throw new novelotError(401, "Unauthorized")
+    }
+
+    const tokens = await userService.refreshUser(refreshToken)
+    sendRefreshToken(tokens.refreshToken, res)
+    sendAccessToken(tokens.accessToken, res)
+}
+
+export default { login, register, refresh }

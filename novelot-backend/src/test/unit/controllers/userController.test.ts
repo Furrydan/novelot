@@ -4,11 +4,13 @@ import userController from "@controllers/userController.js";
 import userService from "@services/userService.js";
 import { sendAccessToken, sendRefreshToken } from "@helpers/token.ts";
 import { validateEmail, validatePassword } from "@helpers/validator.ts";
+import { novelotError } from "@helpers/error.js";
 
 vi.mock("@services/userService.ts", () => ({
     default: {
         loginUser: vi.fn(),
-        registerUser: vi.fn()
+        registerUser: vi.fn(),
+        refreshUser: vi.fn()
     }
 }))
 
@@ -92,4 +94,66 @@ describe("#register", () => {
         expect(res.json).toHaveBeenCalledExactlyOnceWith({ "message": "User Created" })
     })
 
+})
+
+describe("#refresh", () => {
+    let req: Request
+    let res: Response
+    const email = "harry@gmail.com"
+    const oldRefreshToken = "old-refresh-token"
+    const accessToken = "new-access-token"
+    const refreshToken = "new-refresh-token"
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        vi.mocked(userService.refreshUser).mockReset()
+        vi.mocked(userService.refreshUser).mockResolvedValue({ accessToken, refreshToken })
+        req = {
+            body: { email },
+            cookies: { refreshToken: oldRefreshToken }
+        } as unknown as Request
+        res = {} as unknown as Response
+    })
+
+    it("Passes only the cookie to the service and sends the returned tokens", async () => {
+        await userController.refresh(req, res)
+
+        expect(userService.refreshUser).toHaveBeenCalledExactlyOnceWith(oldRefreshToken)
+        expect(sendAccessToken).toHaveBeenCalledExactlyOnceWith(accessToken, res)
+        expect(sendRefreshToken).toHaveBeenCalledExactlyOnceWith(refreshToken, res)
+    })
+
+    it("Throws 401 when the refresh cookie is missing", async () => {
+        req.cookies = {}
+
+        await expect(userController.refresh(req, res)).rejects.toMatchObject({ status: 401 })
+
+        expect(userService.refreshUser).not.toHaveBeenCalled()
+        expect(sendAccessToken).not.toHaveBeenCalled()
+        expect(sendRefreshToken).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        { reason: "email is missing", body: {} },
+        { reason: "request body is missing", body: undefined }
+    ])("Refreshes successfully when $reason", async ({ body }) => {
+        req.body = body
+
+        await userController.refresh(req, res)
+
+        expect(userService.refreshUser).toHaveBeenCalledExactlyOnceWith(oldRefreshToken)
+        expect(sendAccessToken).toHaveBeenCalledExactlyOnceWith(accessToken, res)
+        expect(sendRefreshToken).toHaveBeenCalledExactlyOnceWith(refreshToken, res)
+    })
+
+    it("Propagates service failures without sending tokens", async () => {
+        const error = new novelotError(401, "Unauthorized")
+        vi.mocked(userService.refreshUser).mockRejectedValue(error)
+
+        await expect(userController.refresh(req, res)).rejects.toBe(error)
+
+        expect(userService.refreshUser).toHaveBeenCalledExactlyOnceWith(oldRefreshToken)
+        expect(sendAccessToken).not.toHaveBeenCalled()
+        expect(sendRefreshToken).not.toHaveBeenCalled()
+    })
 })

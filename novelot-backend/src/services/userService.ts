@@ -1,8 +1,9 @@
 import userModel from "@models/userModel.js";
 import { hash, compare } from "bcryptjs"
-import { createAccessToken, createRefreshToken } from "@helpers/token.js"
+import { createAccessToken, createRefreshToken, getUserIdFromRefreshToken, hashRefreshToken, matchesRefreshToken } from "@helpers/token.js"
 import { type User } from "@apptypes/User.js"
 import { novelotError } from "@helpers/error.js";
+import mongoose from "mongoose"
 
 type tokens = {
     accessToken: string,
@@ -44,11 +45,51 @@ async function loginUser(email: string, password: string): Promise<tokens> {
     const refreshToken: string = createRefreshToken(user._id)
     const accessToken: string = createAccessToken(user._id)
 
-    await userModel.addRefreshToken(email, refreshToken)
+    const hashedRefreshToken = hashRefreshToken(refreshToken)
+
+    await userModel.addRefreshToken(email, hashedRefreshToken)
 
     const tokens: tokens = { accessToken, refreshToken }
     return tokens
 }
 
+async function refreshUser(refreshToken: string): Promise<tokens> {
+    const userId = getUserIdFromRefreshToken(refreshToken)
+    if (!(userId instanceof mongoose.Types.ObjectId)) {
+        throw new novelotError(401, "Unauthorized")
+    }
+    let user: User
+    try {
+        user = await userModel.getByID(userId)
+    }
+    catch (err) {
+        if (err instanceof novelotError && err.status === 404) {
+            throw new novelotError(401, "Unauthorized")
+        }
+        throw err
+    }
+    const dbToken = user.refreshToken
+    const id = user._id
 
-export default { registerUser, loginUser }
+    const tokenMatchesDB = matchesRefreshToken(refreshToken, dbToken)
+
+    if (!tokenMatchesDB) {
+        throw new novelotError(401, "Unauthorized")
+    }
+
+    const newAccessToken = createAccessToken(id)
+    const newRefreshToken = createRefreshToken(id)
+
+    const hashedRefreshToken = hashRefreshToken(newRefreshToken)
+
+    await userModel.addRefreshToken(user.email, hashedRefreshToken)
+
+    const tokens: tokens = { accessToken: newAccessToken, refreshToken: newRefreshToken }
+    return tokens
+
+
+
+}
+
+
+export default { registerUser, loginUser, refreshUser }

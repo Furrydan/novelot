@@ -6,6 +6,7 @@ import { hash, compare } from "bcryptjs"
 import mongoose from "mongoose"
 import { User } from "@apptypes/User.ts"
 import jwt from "jsonwebtoken"
+import * as tokenHelpers from "@helpers/token.js"
 
 const email = "harry@gmail.com"
 const password = "password123"
@@ -23,6 +24,7 @@ vi.mock("@models/userModel.js", () => ({
         checkEmailExists: vi.fn(),
         addNewUser: vi.fn(),
         getUser: vi.fn(),
+        getByID: vi.fn(),
         addRefreshToken: vi.fn()
     }
 }))
@@ -81,7 +83,10 @@ describe("# Login User", () => {
         const decoded = jwt.verify(accessToken, accessTokenKey) as jwt.JwtPayload
         expect(decoded.userID).toBe(user._id.toString())
         expect(userModel.addRefreshToken).toHaveBeenCalledOnce()
-        expect(userModel.addRefreshToken).toHaveBeenCalledWith(email, refreshToken)
+        const [storedEmail, storedToken] = vi.mocked(userModel.addRefreshToken).mock.calls[0]
+        expect(storedEmail).toBe(email)
+        expect(storedToken).not.toBe(refreshToken)
+        expect(storedToken).toBe(tokenHelpers.hashRefreshToken(refreshToken))
 
     })
 
@@ -99,5 +104,127 @@ describe("# Login User", () => {
 
         await (expect(userService.loginUser(email, password)))
             .rejects.toThrow(new Error("Test Error"))
+    })
+})
+
+describe("# Refresh User", () => {
+    const oldRefreshToken = "old-refresh-token"
+    const newRefreshToken = "new-refresh-token"
+    const newAccessToken = "new-access-token"
+
+    beforeEach(() => {
+        vi.spyOn(tokenHelpers, "getUserIdFromRefreshToken").mockReturnValue(user._id)
+        vi.spyOn(tokenHelpers, "createAccessToken").mockReturnValue(newAccessToken)
+        vi.spyOn(tokenHelpers, "createRefreshToken").mockReturnValue(newRefreshToken)
+        vi.mocked(userModel.getByID).mockResolvedValue({
+            ...user,
+            refreshToken: tokenHelpers.hashRefreshToken(oldRefreshToken)
+        } as User)
+        vi.mocked(userModel.addRefreshToken).mockResolvedValue(true)
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    it("Propagates 401 from verification without accessing the database", async () => {
+        vi.mocked(tokenHelpers.getUserIdFromRefreshToken)
+            .mockImplementation(() => { throw new novelotError(401, "Unauthorized") })
+
+        await expect(userService.refreshUser(oldRefreshToken))
+            .rejects.toMatchObject({ status: 401, message: "Unauthorized" })
+
+        expect(tokenHelpers.getUserIdFromRefreshToken).toHaveBeenCalledExactlyOnceWith(oldRefreshToken)
+        expect(userModel.getByID).not.toHaveBeenCalled()
+        expect(userModel.getUser).not.toHaveBeenCalled()
+        expect(userModel.addRefreshToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createAccessToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createRefreshToken).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        { reason: "string", id: user._id.toString() },
+        { reason: "number", id: 123 },
+        { reason: "plain object", id: {} },
+        { reason: "null", id: null }
+    ])("Rejects an extracted $reason ID before accessing the database", async ({ id }) => {
+        vi.mocked(tokenHelpers.getUserIdFromRefreshToken)
+            .mockReturnValue(id as unknown as mongoose.Types.ObjectId)
+
+        const result = userService.refreshUser(oldRefreshToken)
+        await expect(result).rejects.toBeInstanceOf(novelotError)
+        await expect(result).rejects.toMatchObject({ status: 401, message: "Unauthorized" })
+
+        expect(userModel.getByID).not.toHaveBeenCalled()
+        expect(userModel.getUser).not.toHaveBeenCalled()
+        expect(userModel.addRefreshToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createAccessToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createRefreshToken).not.toHaveBeenCalled()
+    })
+
+    it("Converts a missing user's 404 into a new 401 error", async () => {
+        const error = new novelotError(404, "User not Found")
+        vi.mocked(userModel.getByID).mockRejectedValue(error)
+
+        const result = userService.refreshUser(oldRefreshToken)
+        await expect(result).rejects.toBeInstanceOf(novelotError)
+        await expect(result).rejects.toMatchObject({ status: 401, message: "Unauthorized" })
+        await expect(result).rejects.not.toBe(error)
+
+        expect(userModel.getByID).toHaveBeenCalledExactlyOnceWith(user._id)
+        expect(userModel.addRefreshToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createAccessToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createRefreshToken).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        { reason: "database failure", error: new Error("Database unavailable") },
+        { reason: "non-404 application error", error: new novelotError(500, "Database unavailable") }
+    ])("Propagates lookup errors: $reason", async ({ error }) => {
+        vi.mocked(userModel.getByID).mockRejectedValue(error)
+
+        await expect(userService.refreshUser(oldRefreshToken)).rejects.toBe(error)
+
+        expect(userModel.getByID).toHaveBeenCalledExactlyOnceWith(user._id)
+        expect(userModel.addRefreshToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createAccessToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createRefreshToken).not.toHaveBeenCalled()
+    })
+
+    it("Throws 401 when the token does not match the stored hash", async () => {
+        await expect(userService.refreshUser("different-refresh-token"))
+            .rejects.toMatchObject({ status: 401, message: "Unauthorized" })
+
+        expect(userModel.addRefreshToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createAccessToken).not.toHaveBeenCalled()
+        expect(tokenHelpers.createRefreshToken).not.toHaveBeenCalled()
+    })
+
+    it("Returns new tokens and stores a hash of the replacement, not the old token", async () => {
+        await expect(userService.refreshUser(oldRefreshToken)).resolves.toEqual({
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken
+        })
+
+        expect(tokenHelpers.getUserIdFromRefreshToken).toHaveBeenCalledExactlyOnceWith(oldRefreshToken)
+        expect(userModel.getByID).toHaveBeenCalledExactlyOnceWith(user._id)
+        expect(userModel.getUser).not.toHaveBeenCalled()
+        expect(tokenHelpers.createAccessToken).toHaveBeenCalledExactlyOnceWith(user._id)
+        expect(tokenHelpers.createRefreshToken).toHaveBeenCalledExactlyOnceWith(user._id)
+        expect(userModel.addRefreshToken).toHaveBeenCalledOnce()
+        const [storedEmail, storedToken] = vi.mocked(userModel.addRefreshToken).mock.calls[0]
+        expect(storedEmail).toBe(email)
+        expect(storedToken).not.toBe(newRefreshToken)
+        expect(storedToken).toBe(tokenHelpers.hashRefreshToken(newRefreshToken))
+        expect(storedToken).not.toBe(tokenHelpers.hashRefreshToken(oldRefreshToken))
+    })
+
+    it("Rejects rather than returning credentials when the update fails", async () => {
+        const error = new Error("Failed to persist replacement")
+        vi.mocked(userModel.addRefreshToken).mockRejectedValue(error)
+
+        await expect(userService.refreshUser(oldRefreshToken)).rejects.toBe(error)
+
+        expect(userModel.addRefreshToken).toHaveBeenCalledOnce()
     })
 })
