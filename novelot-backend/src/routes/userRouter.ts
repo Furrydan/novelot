@@ -9,5 +9,7 @@ userRouter.post('/login', userController.login)
 
 userRouter.post('/register', userController.register)
 
+userRouter.post('/refresh', userController.refresh)
+
 export default userRouter;
 

@@ -28,6 +28,14 @@ async function getUser(email: string): Promise<User> {
     return user
 }
 
+async function getByID(id: mongoose.Types.ObjectId): Promise<User> {
+    const user = await userModel.findById(id)
+    if (!user) {
+        throw new novelotError(404, "User not Found")
+    }
+    return user
+}
+
 async function addRefreshToken(email: string, refreshToken: string): Promise<boolean> {
     const newUser: User | null = await userModel.findOneAndUpdate(
         { email },
@@ -52,4 +60,4 @@ async function addNewUser(email: string, password: string): Promise<UserInput> {
 
 }
 
-export default { checkEmailExists, addNewUser, getUser, addRefreshToken }
+export default { checkEmailExists, addNewUser, getUser, getByID, addRefreshToken }
