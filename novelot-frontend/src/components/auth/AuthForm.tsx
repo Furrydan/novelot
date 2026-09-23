@@ -1,7 +1,7 @@
 import {
     useState,
     type ChangeEvent,
-    type FormEvent,
+    type SubmitEvent,
     type ReactNode,
 } from "react";
 import { IoEye, IoEyeOff } from "react-icons/io5";
@@ -9,7 +9,7 @@ import "./AuthForm.css";
 
 type AuthFormProps = {
     children: ReactNode;
-    onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+    onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
 };
 
 export function AuthForm({ children, onSubmit }: AuthFormProps) {

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -19,7 +19,7 @@ function LoginForm({ onSuccess }: LoginFormProps) {
     const [error, setError] = useState<string | null>(null);
     const { login, isLoading } = useAuth();
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         try {
