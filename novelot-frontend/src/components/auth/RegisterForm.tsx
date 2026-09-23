@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -20,7 +20,7 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
     const [error, setError] = useState<string | null>(null);
     const { register, isLoading } = useAuth();
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         if (password !== confirmPassword) {
