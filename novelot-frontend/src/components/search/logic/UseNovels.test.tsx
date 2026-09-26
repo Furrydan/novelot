@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import type { AxiosResponse } from "axios";
 import useNovels from "./UseNovels";
 import { api } from "@api/novelClients";
 import { isNovel } from "@novelot-types/Novel";
@@ -12,6 +13,16 @@ vi.mock("@api/novelClients", () => ({
 }))
 
 const novels = novelList.filter(isNovel).slice(100, 200)
+
+function deferredResponse() {
+    let resolve!: (response: AxiosResponse) => void
+    let reject!: (error: unknown) => void
+    const promise = new Promise<AxiosResponse>((done, fail) => {
+        resolve = done
+        reject = fail
+    })
+    return { promise, resolve, reject }
+}
 
 describe("useNovels /all", () => {
 
@@ -170,6 +181,55 @@ describe("UseNovels /search", () => {
     afterEach(() => {
         vi.useRealTimers()
         vi.resetAllMocks()
+    })
+
+    it("keeps the latest search results when an earlier request resolves afterward", async () => {
+        const oldRequest = deferredResponse()
+        const latestRequest = deferredResponse()
+        vi.mocked(api.get).mockReturnValueOnce(oldRequest.promise).mockReturnValueOnce(latestRequest.promise)
+        const setCurrentPage = vi.fn()
+        const latestNovels = novels.slice(10, 20)
+        const oldNovels = novels.slice(0, 10)
+
+        const { result, rerender } = renderHook(
+            ({ search }) => useNovels(search, 1, setCurrentPage, 10),
+            { initialProps: { search: "mars" } }
+        )
+        expect(api.get).toHaveBeenCalledWith("/search/", { params: { search: "mars", page: 1, limit: 10 } })
+
+        rerender({ search: "venus" })
+        act(() => vi.advanceTimersByTime(1000))
+        expect(api.get).toHaveBeenCalledWith("/search/", { params: { search: "venus", page: 1, limit: 10 } })
+
+        await act(async () => latestRequest.resolve({ data: latestNovels } as AxiosResponse))
+        expect(result.current).toEqual(latestNovels)
+
+        await act(async () => oldRequest.resolve({ data: oldNovels } as AxiosResponse))
+        expect(result.current).toEqual(latestNovels)
+        expect(setCurrentPage).not.toHaveBeenCalled()
+    })
+
+    it("does not change the new search's page when an earlier request fails", async () => {
+        const oldRequest = deferredResponse()
+        const latestRequest = deferredResponse()
+        vi.mocked(api.get).mockReturnValueOnce(oldRequest.promise).mockReturnValueOnce(latestRequest.promise)
+        const setCurrentPage = vi.fn()
+        const latestNovels = novels.slice(10, 20)
+
+        const { result, rerender } = renderHook(
+            ({ search }) => useNovels(search, 2, setCurrentPage, 10),
+            { initialProps: { search: "mars" } }
+        )
+        rerender({ search: "venus" })
+        act(() => vi.advanceTimersByTime(1000))
+
+        await act(async () => latestRequest.resolve({ data: latestNovels } as AxiosResponse))
+        await act(async () => oldRequest.reject({
+            response: { status: 400, data: { message: "Invalid Page" } }
+        }))
+
+        expect(result.current).toEqual(latestNovels)
+        expect(setCurrentPage).not.toHaveBeenCalled()
     })
 
     it("Waits 1 second before sending requests", async () => {
