@@ -27,6 +27,7 @@ function deferredResponse() {
 describe("useNovels /all", () => {
 
     afterEach(() => {
+        vi.restoreAllMocks()
         vi.clearAllMocks()
     })
 
@@ -108,69 +109,90 @@ describe("useNovels /all", () => {
         })
     })
 
-    it("Throws error and returns empty list upon error", async () => {
-
-        const error = {
-            response: {
-                status: 500,
-                data: {
-                    message: "Internal Server Error"
-                }
-            }
-        }
-
-        vi.mocked(api.get).mockRejectedValueOnce(error)
-
-        const consoleMock = vi.spyOn(console, 'error')
-        const search = ""
-        const currentPage = 1
+    it("clears existing results when a network error has no response", async () => {
+        const page1 = novels.slice(0, 10)
+        const error = new Error("Network Error")
+        vi.mocked(api.get).mockResolvedValueOnce({ data: page1 }).mockRejectedValueOnce(error)
+        const consoleMock = vi.spyOn(console, "error").mockImplementation(() => {})
         const setCurrentPage = vi.fn()
-        const limit = 1
 
-        const { result } = renderHook(
-            ({ search, currentPage, limit }) => useNovels(search, currentPage, setCurrentPage, limit), { initialProps: { search, currentPage, limit } }
+        const { result, rerender } = renderHook(
+            ({ currentPage }) => useNovels("", currentPage, setCurrentPage, 10),
+            { initialProps: { currentPage: 1 } }
         )
+        await waitFor(() => expect(result.current).toEqual(page1))
+
+        rerender({ currentPage: 2 })
 
         await waitFor(() => {
             expect(result.current).toEqual([])
-            expect(consoleMock).toHaveBeenCalled()
             expect(consoleMock).toHaveBeenCalledWith("Failed to load novels", error)
         })
-
+        expect(setCurrentPage).not.toHaveBeenCalled()
     })
 
-    it("Filters for Novels", async () => {
-        vi.mocked(api.get).mockResolvedValueOnce({ data: ["hello", "testing"] })
+    it("clears existing results when a later request returns a server error", async () => {
+        const page1 = novels.slice(0, 10)
+        const error = { response: { status: 500, data: { message: "Internal Server Error" } } }
+        vi.mocked(api.get).mockResolvedValueOnce({ data: page1 }).mockRejectedValueOnce(error)
+        const consoleMock = vi.spyOn(console, "error").mockImplementation(() => {})
         const setCurrentPage = vi.fn()
-        const search = ""
-        const currentPage = 1
-        const limit = 10
 
-        const { result } = renderHook(
-            () => useNovels(search, currentPage, setCurrentPage, limit), { initialProps: { search, currentPage, limit } }
+        const { result, rerender } = renderHook(
+            ({ currentPage }) => useNovels("", currentPage, setCurrentPage, 10),
+            { initialProps: { currentPage: 1 } }
         )
+        await waitFor(() => expect(result.current).toEqual(page1))
+
+        rerender({ currentPage: 2 })
 
         await waitFor(() => {
             expect(result.current).toEqual([])
+            expect(consoleMock).toHaveBeenCalledWith("Failed to load novels", error)
         })
+        expect(setCurrentPage).not.toHaveBeenCalled()
     })
 
-    it("Filters for array", async () => {
-        vi.mocked(api.get).mockResolvedValueOnce({ data: "hello" })
+    it("clears existing results when a later response contains no valid novels", async () => {
+        const page1 = novels.slice(0, 10)
+        vi.mocked(api.get)
+            .mockResolvedValueOnce({ data: page1 })
+            .mockResolvedValueOnce({ data: ["hello", "testing"] })
         const setCurrentPage = vi.fn()
-        const search = ""
-        const currentPage = 1
-        const limit = 10
 
-        const { result } = renderHook(
-            () => useNovels(search, currentPage, setCurrentPage, limit), { initialProps: { search, currentPage, limit } }
+        const { result, rerender } = renderHook(
+            ({ currentPage }) => useNovels("", currentPage, setCurrentPage, 10),
+            { initialProps: { currentPage: 1 } }
         )
+        await waitFor(() => expect(result.current).toEqual(page1))
 
-        await waitFor(() => {
-            expect(result.current).toEqual([])
-        })
+        rerender({ currentPage: 2 })
 
+        await waitFor(() => expect(result.current).toEqual([]))
+        expect(api.get).toHaveBeenCalledTimes(2)
+        expect(setCurrentPage).not.toHaveBeenCalled()
     })
+
+    it("clears existing results when a later response is not an array", async () => {
+        const page1 = novels.slice(0, 10)
+        vi.mocked(api.get)
+            .mockResolvedValueOnce({ data: page1 })
+            .mockResolvedValueOnce({ data: "hello" })
+        const setCurrentPage = vi.fn()
+
+        const { result, rerender } = renderHook(
+            ({ currentPage }) => useNovels("", currentPage, setCurrentPage, 10),
+            { initialProps: { currentPage: 1 } }
+        )
+        await waitFor(() => expect(result.current).toEqual(page1))
+
+        rerender({ currentPage: 2 })
+
+        await waitFor(() => expect(result.current).toEqual([]))
+        expect(api.get).toHaveBeenCalledTimes(2)
+        expect(setCurrentPage).not.toHaveBeenCalled()
+    })
+
 })
 
 describe("UseNovels /search", () => {
@@ -230,6 +252,76 @@ describe("UseNovels /search", () => {
 
         expect(result.current).toEqual(latestNovels)
         expect(setCurrentPage).not.toHaveBeenCalled()
+    })
+
+    it("cancels the earlier debounce when the search changes again", async () => {
+        const initialRequest = deferredResponse()
+        vi.mocked(api.get).mockReturnValueOnce(initialRequest.promise).mockResolvedValue({ data: [] })
+        const setCurrentPage = vi.fn()
+        const { rerender } = renderHook(
+            ({ search }) => useNovels(search, 1, setCurrentPage, 10),
+            { initialProps: { search: "" } }
+        )
+        await act(async () => initialRequest.resolve({ data: [] } as AxiosResponse))
+        expect(api.get).toHaveBeenCalledOnce()
+
+        rerender({ search: "mar" })
+        act(() => vi.advanceTimersByTime(500))
+        rerender({ search: "mars" })
+
+        act(() => vi.advanceTimersByTime(500))
+        expect(api.get).toHaveBeenCalledOnce()
+        act(() => vi.advanceTimersByTime(499))
+        expect(api.get).toHaveBeenCalledOnce()
+        act(() => vi.advanceTimersByTime(1))
+
+        expect(api.get).toHaveBeenCalledTimes(2)
+        expect(api.get).toHaveBeenLastCalledWith("/search/", {
+            params: { search: "mars", page: 1, limit: 10 }
+        })
+    })
+
+    it("fetches all novels immediately when clearing a search and cancels its pending request", async () => {
+        const initialRequest = deferredResponse()
+        vi.mocked(api.get).mockReturnValueOnce(initialRequest.promise).mockResolvedValue({ data: [] })
+        const setCurrentPage = vi.fn()
+        const { rerender } = renderHook(
+            ({ search }) => useNovels(search, 1, setCurrentPage, 10),
+            { initialProps: { search: "" } }
+        )
+        await act(async () => initialRequest.resolve({ data: [] } as AxiosResponse))
+        expect(api.get).toHaveBeenCalledOnce()
+
+        rerender({ search: "mars" })
+        act(() => vi.advanceTimersByTime(500))
+        expect(api.get).toHaveBeenCalledOnce()
+
+        rerender({ search: "" })
+        expect(api.get).toHaveBeenCalledTimes(2)
+        expect(api.get).toHaveBeenLastCalledWith("/all", { params: { page: 1, limit: 10 } })
+
+        act(() => vi.advanceTimersByTime(1000))
+        expect(api.get).toHaveBeenCalledTimes(2)
+    })
+
+    it("does not send a debounced request after unmounting", async () => {
+        const initialRequest = deferredResponse()
+        vi.mocked(api.get).mockReturnValueOnce(initialRequest.promise).mockResolvedValue({ data: [] })
+        const setCurrentPage = vi.fn()
+        const { rerender, unmount } = renderHook(
+            ({ search }) => useNovels(search, 1, setCurrentPage, 10),
+            { initialProps: { search: "" } }
+        )
+        await act(async () => initialRequest.resolve({ data: [] } as AxiosResponse))
+        expect(api.get).toHaveBeenCalledOnce()
+
+        rerender({ search: "mars" })
+        expect(api.get).toHaveBeenCalledOnce()
+        unmount()
+        act(() => vi.advanceTimersByTime(1000))
+
+        expect(api.get).toHaveBeenCalledOnce()
+        expect(api.get).toHaveBeenCalledWith("/all", { params: { page: 1, limit: 10 } })
     })
 
     it("Waits 1 second before sending requests", async () => {
@@ -307,42 +399,6 @@ describe("UseNovels /search", () => {
         expect(api.get).toHaveBeenCalledWith("/search/", { params: { search, page: currentPage, limit } })
         await vi.waitFor(() => {
             expect(result.current).toEqual(page2)
-        })
-
-    })
-
-    it("Resets timer upon new search", async () => {
-        let search = "hell"
-        const currentPage = 1
-        const setCurrentPage = vi.fn()
-        const limit = 10
-
-        const page1 = novels.slice(10, 20)
-
-        vi.mocked(api.get).mockResolvedValue({ data: page1 })
-
-        const { result, rerender } = renderHook(
-            ({ search }) => useNovels(search, currentPage, setCurrentPage, limit), { initialProps: { search } }
-        )
-
-        expect(api.get).not.toHaveBeenCalledTimes(2)
-        expect(result.current).toEqual([])
-        vi.advanceTimersByTime(999)
-        expect(api.get).not.toHaveBeenCalledTimes(2)
-        expect(result.current).toEqual([])
-
-        search = "hello"
-        rerender({ search })
-
-        expect(api.get).not.toHaveBeenCalledTimes(2)
-        expect(result.current).toEqual([])
-        vi.advanceTimersByTime(1)
-        expect(api.get).not.toHaveBeenCalledTimes(2)
-        expect(result.current).toEqual([])
-        vi.advanceTimersByTime(999)
-        expect(api.get).toHaveBeenCalledTimes(2)
-        await vi.waitFor(() => {
-            expect(result.current).toEqual(page1)
         })
 
     })

@@ -20,7 +20,7 @@ function useNovels(search: string, currentPage: number, setCurrentPage: React.Di
         })
             .catch(error => {
                 if (requestId !== requestIdRef.current) return
-                if (error.response.status === 400 && error.response.data.message === "Invalid Page") {
+                if (error.response?.status === 400 && error.response?.data?.message === "Invalid Page") {
                     setCurrentPage(prev => prev - 1)
                 }
 
