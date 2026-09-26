@@ -41,13 +41,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsLoading(true);
         try {
             const response_register = await authApi.post("/register", { email, password });
-            if (response_register.status === 201) {
-                const response_login = await authApi.post("/login", { email, password });
-                const accessToken = response_login.data.accessToken as string;
-                accessTokenRef.current = accessToken;
-                authApi.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-                setUser({ email });
+            if (response_register.status !== 201) {
+                throw new Error("Registration failed");
             }
+            const response_login = await authApi.post("/login", { email, password });
+            const accessToken = response_login.data.accessToken as string;
+            accessTokenRef.current = accessToken;
+            authApi.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+            setUser({ email });
         } finally {
             setIsLoading(false);
         }

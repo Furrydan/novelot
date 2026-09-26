@@ -138,12 +138,12 @@ describe("AuthProvider", () => {
         },
     );
 
-    it("does not log in when registration does not return 201", async () => {
+    it("rejects without logging in when registration does not return 201", async () => {
         vi.mocked(authApi.post).mockResolvedValueOnce({ status: 200 } as AxiosResponse);
         const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
         await act(async () => {
-            await result.current.register(email, password);
+            await expect(result.current.register(email, password)).rejects.toThrow("Registration failed");
         });
 
         expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/register", { email, password });
