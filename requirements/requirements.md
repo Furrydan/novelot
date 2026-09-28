@@ -43,3 +43,22 @@ This project is meant to be a website that allows viewers to browse, search and 
 
 1. The back-end is responsible for ensuring that data is encrypted and decrypted between the database and front-end.
 
+## Deferred Work
+
+### Authentication (from persistent login)
+
+#### Back-end
+
+1. Add a `/me` endpoint that returns the logged-in user's email. The front-end currently restores sessions as a user without an email.
+2. Give the refresh token cookie a `maxAge` matching the token's expiry. It is currently a session cookie that is dropped when the browser closes.
+3. Enforce an absolute session lifetime: a rotated refresh token keeps the expiry of the token it replaces instead of getting a fresh 7 days.
+4. Detect refresh token reuse: presenting an already-rotated token should log the user out.
+5. Allow a short grace period after rotation so that tabs refreshing at the same time are not treated as token reuse. Required before reuse detection.
+6. Add a logout route that clears the refresh token cookie and the stored token. The cookie is scoped to `/api/users/refresh`, so logout needs access to it.
+
+#### Front-end
+
+1. Add an unknown auth state while the refresh on load is in flight, so the login button does not flash on reload.
+2. Add an axios interceptor that refreshes the access token on a 401. It must be registered inside `AuthProvider` to share the in-flight refresh.
+3. Fill in `user.email` from `/me` once it exists.
+

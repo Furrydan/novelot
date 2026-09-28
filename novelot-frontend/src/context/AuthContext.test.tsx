@@ -24,20 +24,54 @@ function deferredResponse() {
 
 describe("AuthProvider", () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
+        vi.mocked(authApi.post).mockRejectedValueOnce(new Error("Unauthorized"));
         delete authApi.defaults.headers.common["Authorization"];
     });
 
     afterEach(cleanup);
 
-    it("starts logged out and not loading", () => {
+    it("attempts a refresh on mount and stays logged out when it fails", async () => {
         const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
         expect(result.current.user).toBeNull();
         expect(result.current.isLoggedIn).toBe(false);
         expect(result.current.isLoading).toBe(false);
-        expect(authApi.post).not.toHaveBeenCalled();
+        expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
     });
+
+    it.each([
+        { mode: "normal", reactStrictMode: false },
+        { mode: "strict", reactStrictMode: true },
+    ])(
+        "restores the session with a single refresh on mount in $mode mode",
+        async ({ reactStrictMode }) => {
+            const refreshResponse = deferredResponse();
+            vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
+            const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider, reactStrictMode });
+
+            expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
+            expect(result.current.user).toBeNull();
+            expect(result.current.isLoggedIn).toBe(false);
+            expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
+
+            await act(async () => {
+                refreshResponse.resolve({ data: { accessToken: "refresh-token" } } as AxiosResponse);
+                await refreshResponse.promise;
+            });
+
+            expect(authApi.post).toHaveBeenCalledTimes(1);
+            expect(result.current.user).toEqual({});
+            expect(result.current.isLoggedIn).toBe(true);
+            expect(result.current.isLoading).toBe(false);
+            expect(authApi.defaults.headers.common["Authorization"]).toBe("Bearer refresh-token");
+        },
+    );
 
     it("logs in, exposes the user, and sets the authorization header", async () => {
         const loginResponse = deferredResponse();
@@ -49,7 +83,8 @@ describe("AuthProvider", () => {
             loginPromise = result.current.login(email, password);
         });
 
-        expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/login", { email, password });
+        expect(authApi.post).toHaveBeenCalledTimes(2);
+        expect(authApi.post).toHaveBeenLastCalledWith("/login", { email, password });
         expect(result.current.isLoading).toBe(true);
         expect(result.current.isLoggedIn).toBe(false);
 
@@ -73,7 +108,8 @@ describe("AuthProvider", () => {
             await expect(result.current.login(email, password)).rejects.toBe(error);
         });
 
-        expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/login", { email, password });
+        expect(authApi.post).toHaveBeenCalledTimes(2);
+        expect(authApi.post).toHaveBeenLastCalledWith("/login", { email, password });
         expect(result.current.user).toBeNull();
         expect(result.current.isLoggedIn).toBe(false);
         expect(result.current.isLoading).toBe(false);
@@ -94,13 +130,13 @@ describe("AuthProvider", () => {
 
         expect(result.current.isLoading).toBe(true);
         expect(result.current.user).toBeNull();
-        expect(authApi.post).toHaveBeenNthCalledWith(1, "/register", { email, password });
+        expect(authApi.post).toHaveBeenNthCalledWith(2, "/register", { email, password });
 
         await act(async () => {
             await Promise.resolve();
         });
 
-        expect(authApi.post).toHaveBeenNthCalledWith(2, "/login", { email, password });
+        expect(authApi.post).toHaveBeenNthCalledWith(3, "/login", { email, password });
         expect(result.current.isLoading).toBe(true);
         expect(result.current.isLoggedIn).toBe(false);
 
@@ -109,7 +145,7 @@ describe("AuthProvider", () => {
             await registerPromise;
         });
 
-        expect(authApi.post).toHaveBeenCalledTimes(2);
+        expect(authApi.post).toHaveBeenCalledTimes(3);
         expect(result.current.user).toEqual({ email });
         expect(result.current.isLoggedIn).toBe(true);
         expect(result.current.isLoading).toBe(false);
@@ -130,7 +166,7 @@ describe("AuthProvider", () => {
                 await expect(result.current.register(email, password)).rejects.toBe(error);
             });
 
-            expect(authApi.post).toHaveBeenCalledTimes(failedStep === "registration" ? 1 : 2);
+            expect(authApi.post).toHaveBeenCalledTimes(failedStep === "registration" ? 2 : 3);
             expect(result.current.user).toBeNull();
             expect(result.current.isLoggedIn).toBe(false);
             expect(result.current.isLoading).toBe(false);
@@ -146,7 +182,8 @@ describe("AuthProvider", () => {
             await expect(result.current.register(email, password)).rejects.toThrow("Registration failed");
         });
 
-        expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/register", { email, password });
+        expect(authApi.post).toHaveBeenCalledTimes(2);
+        expect(authApi.post).toHaveBeenLastCalledWith("/register", { email, password });
         expect(result.current.user).toBeNull();
         expect(result.current.isLoggedIn).toBe(false);
         expect(result.current.isLoading).toBe(false);

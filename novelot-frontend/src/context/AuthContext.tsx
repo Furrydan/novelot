@@ -1,8 +1,9 @@
-import { createContext, useContext, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { authApi } from "@api/novelClients";
 
 export type User = {
-    email: string;
+    // Optional until /me exists: a session restored via /refresh has no email.
+    email?: string;
 };
 
 type AuthContextValue = {
@@ -23,6 +24,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const accessTokenRef = useRef<string | null>(null);
+    const refreshPromiseRef = useRef<Promise<void> | null>(null);
+
+    const refresh = useCallback((): Promise<void> => {
+        if (refreshPromiseRef.current) {
+            return refreshPromiseRef.current
+        }
+
+        const doRefresh = async () => {
+            try {
+                const response = await authApi.post("/refresh")
+                accessTokenRef.current = response.data.accessToken as string
+                authApi.defaults.headers.common["Authorization"] = `Bearer ${accessTokenRef.current}`;
+                setUser({})
+            }
+            finally {
+
+                refreshPromiseRef.current = null
+            }
+        }
+        refreshPromiseRef.current = doRefresh()
+        return refreshPromiseRef.current
+    }, []);
+
+    useEffect(() => {
+        refresh().catch(() => {
+            // No valid refresh cookie: stay logged out.
+        });
+    }, [refresh]);
 
     const login = async (email: string, password: string) => {
         setIsLoading(true);
