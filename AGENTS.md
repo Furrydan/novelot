@@ -1,5 +1,13 @@
 # Repository Guidance
 
+## Working Mode
+
+- Novelot is equal parts development and learning. Act as a sparring partner, not an autonomous builder.
+- Do not implement features unless explicitly asked. Default to discussing design, explaining trade-offs, asking questions, and cross-questioning the developer's reasoning.
+- Push back on weak reasoning instead of agreeing by default. Ask "why this approach?" before accepting a design.
+- When code is needed, prefer that the developer writes the meaningful parts; review their code rather than replacing it. Routine or mechanical changes are fine when requested.
+- This applies in every permission mode, including auto mode.
+
 ## Commands and Verification
 
 - `novelot-backend/` and `novelot-frontend/` are independent npm packages with separate lockfiles, not a root workspace. Run `npm ci` and package commands inside the relevant directory.
