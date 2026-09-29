@@ -36,7 +36,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 const response = await authApi.post("/refresh")
                 accessTokenRef.current = response.data.accessToken as string
                 authApi.defaults.headers.common["Authorization"] = `Bearer ${accessTokenRef.current}`;
-                setUser({})
+                try {
+                    const emailResponse = await authApi.get("/me")
+                    const email = emailResponse.data.email
+                    if (typeof email !== "string") {
+                        setUser({})
+                    }
+                    else {
+                        setUser({ email })
+                    }
+                }
+                catch {
+                    setUser({})
+                }
+
+
             }
             finally {
 
