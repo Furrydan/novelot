@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import mongoose from "mongoose"
 import jwt from "jsonwebtoken"
-import { createAccessToken, createRefreshToken, sendAccessToken, sendRefreshToken, getUserIdFromRefreshToken, hashRefreshToken, matchesRefreshToken } from "@helpers/token.ts";
+import { createAccessToken, createRefreshToken, sendAccessToken, sendRefreshToken, getUserIdFromRefreshToken, getUserIdFromAccessToken, extractBearerToken, hashRefreshToken, matchesRefreshToken } from "@helpers/token.ts";
 import { hash } from "bcryptjs"
 import { novelotError } from "@helpers/error.ts";
 import { Response } from "express";
@@ -19,8 +19,8 @@ const falseTypes = [
 const mockToken = "testJWT"
 
 const userId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId()
-const ACCESS_TOKEN_SECRET: string = "password123"
-const REFRESH_TOKEN_SECRET: string = "password123"
+const ACCESS_TOKEN_SECRET: string = "access-secret"
+const REFRESH_TOKEN_SECRET: string = "refresh-secret"
 const expiryTimeAccess: number = 15 * 60
 const expiryTimeRefresh: number = 7 * 24 * 60 * 60
 
@@ -152,6 +152,95 @@ describe("Get User ID From Refresh Token", () => {
         const token = jwt.sign({ userID: userId }, "wrong-secret")
 
         expect(() => getUserIdFromRefreshToken(token)).toThrow(expect.objectContaining({ status: 401 }))
+    })
+
+    it("Throws 500 when there is no environment variable", () => {
+        const token = createRefreshToken(userId)
+        vi.unstubAllEnvs()
+
+        expect(() => getUserIdFromRefreshToken(token))
+            .toThrow(new novelotError(500, "Refresh Token Secret Key is not defined"))
+    })
+})
+
+describe("Extract Bearer Token", () => {
+    it.each([
+        { reason: "standard scheme", header: "Bearer abc", expected: "abc" },
+        { reason: "lowercase scheme", header: "bearer abc", expected: "abc" }
+    ])("Returns the token for $reason", ({ header, expected }) => {
+        expect(extractBearerToken(header)).toBe(expected)
+    })
+
+    it.each([
+        { reason: "empty header", header: "" },
+        { reason: "no scheme", header: "abc" },
+        { reason: "scheme without token", header: "Bearer" },
+        { reason: "scheme with empty token", header: "Bearer " },
+        { reason: "wrong scheme", header: "Basic abc" },
+        { reason: "too many parts", header: "Bearer a b" },
+        { reason: "double space", header: "Bearer  abc" }
+    ])("Rejects $reason", ({ header }) => {
+        expect(() => extractBearerToken(header)).toThrow(new novelotError(401, "Unauthorized"))
+    })
+})
+
+describe("Get User ID From Access Token", () => {
+    beforeEach(() => {
+        vi.stubEnv("ACCESS_TOKEN_SECRET", ACCESS_TOKEN_SECRET)
+        vi.stubEnv("REFRESH_TOKEN_SECRET", REFRESH_TOKEN_SECRET)
+    })
+
+    afterEach(() => {
+        vi.unstubAllEnvs()
+    })
+
+    it("Returns the verified userID as an ObjectId", () => {
+        const id = getUserIdFromAccessToken(`Bearer ${createAccessToken(userId)}`)
+
+        expect(id).toBeInstanceOf(mongoose.Types.ObjectId)
+        expect(id.toString()).toBe(userId.toString())
+    })
+
+    it.each([
+        { reason: "missing ID", payload: {} },
+        { reason: "invalid ID", payload: { userID: "invalid" } },
+        { reason: "non-string ID", payload: { userID: 123 } },
+        { reason: "string payload", payload: "not-an-object" }
+    ])("Rejects a signed token with $reason", ({ payload }) => {
+        const token = jwt.sign(payload, ACCESS_TOKEN_SECRET)
+
+        expect(() => getUserIdFromAccessToken(`Bearer ${token}`)).toThrow(expect.objectContaining({ status: 401 }))
+    })
+
+    it("Rejects a token signed with a different secret before trusting its ID", () => {
+        const token = jwt.sign({ userID: userId }, "wrong-secret")
+
+        expect(() => getUserIdFromAccessToken(`Bearer ${token}`)).toThrow(expect.objectContaining({ status: 401 }))
+    })
+
+    it("Rejects an expired token", () => {
+        const token = jwt.sign({ userID: userId }, ACCESS_TOKEN_SECRET, { expiresIn: -60 })
+
+        expect(() => getUserIdFromAccessToken(`Bearer ${token}`)).toThrow(expect.objectContaining({ status: 401 }))
+    })
+
+    it("Rejects a refresh token presented as an access token", () => {
+        const token = createRefreshToken(userId)
+
+        expect(() => getUserIdFromAccessToken(`Bearer ${token}`)).toThrow(expect.objectContaining({ status: 401 }))
+    })
+
+    it("Rejects a valid token sent without the Bearer scheme", () => {
+        const token = createAccessToken(userId)
+
+        expect(() => getUserIdFromAccessToken(token)).toThrow(expect.objectContaining({ status: 401 }))
+    })
+
+    it("Throws 500 for a missing secret even when the header is malformed", () => {
+        vi.unstubAllEnvs()
+
+        expect(() => getUserIdFromAccessToken("malformed"))
+            .toThrow(new novelotError(500, "Access Token Secret Key is not defined"))
     })
 })
 
