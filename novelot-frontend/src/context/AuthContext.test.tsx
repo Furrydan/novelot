@@ -15,11 +15,7 @@ vi.mock("@api/novelClients", () => ({
 const email = "reader@example.com";
 const password = "password123";
 
-const meResponse = {
-    data: {
-        email: email
-    }
-}
+const meResponse = { data: { email } } as AxiosResponse;
 
 function deferredResponse() {
     let resolve!: (response: AxiosResponse) => void;
@@ -56,7 +52,7 @@ describe("AuthProvider", () => {
     it("shows generic user when /me fails", async () => {
         const refreshResponse = deferredResponse();
         vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
-        vi.mocked(authApi.get).mockRejectedValue(new Error("Unauthorized"))
+        vi.mocked(authApi.get).mockRejectedValue(new Error("Unauthorized"));
         const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
         expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
@@ -70,25 +66,23 @@ describe("AuthProvider", () => {
         });
 
         expect(authApi.post).toHaveBeenCalledTimes(1);
-        expect(authApi.get).toHaveBeenCalledWith("/me")
+        expect(authApi.get).toHaveBeenCalledExactlyOnceWith("/me");
         expect(result.current.user).toEqual({});
         expect(result.current.isLoggedIn).toBe(true);
         expect(result.current.isLoading).toBe(false);
         expect(authApi.defaults.headers.common["Authorization"]).toBe("Bearer refresh-token");
+    });
 
-    })
-
-    it.each([{ type: "number", val: 50 },
-    { type: "boolean", val: true }])(
-        "shows generic user when /me returns $type", async ({ val }) => {
+    it.each([
+        { type: "number", data: { email: 50 } },
+        { type: "boolean", data: { email: true } },
+        { type: "null", data: { email: null } },
+        { type: "no email", data: {} },
+    ])(
+        "shows generic user when /me returns $type", async ({ data }) => {
             const refreshResponse = deferredResponse();
-            const getResponse = {
-                data: {
-                    email: val
-                }
-            }
             vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
-            vi.mocked(authApi.get).mockResolvedValueOnce(getResponse)
+            vi.mocked(authApi.get).mockResolvedValueOnce({ data } as AxiosResponse);
             const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
             expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
@@ -102,14 +96,43 @@ describe("AuthProvider", () => {
             });
 
             expect(authApi.post).toHaveBeenCalledTimes(1);
-            expect(authApi.get).toHaveBeenCalledWith("/me")
+            expect(authApi.get).toHaveBeenCalledExactlyOnceWith("/me");
             expect(result.current.user).toEqual({});
             expect(result.current.isLoggedIn).toBe(true);
             expect(result.current.isLoading).toBe(false);
             expect(authApi.defaults.headers.common["Authorization"]).toBe("Bearer refresh-token");
+        },
+    );
 
-        })
+    it("sends /me with the refreshed token and stays logged out until it resolves", async () => {
+        const refreshResponse = deferredResponse();
+        const meDeferred = deferredResponse();
+        let authorizationAtMe: unknown;
+        vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
+        vi.mocked(authApi.get).mockImplementationOnce(() => {
+            authorizationAtMe = authApi.defaults.headers.common["Authorization"];
+            return meDeferred.promise;
+        });
+        const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
+        await act(async () => {
+            refreshResponse.resolve({ data: { accessToken: "refresh-token" } } as AxiosResponse);
+            await refreshResponse.promise;
+        });
+
+        expect(authApi.get).toHaveBeenCalledExactlyOnceWith("/me");
+        expect(authorizationAtMe).toBe("Bearer refresh-token");
+        expect(result.current.user).toBeNull();
+        expect(result.current.isLoggedIn).toBe(false);
+
+        await act(async () => {
+            meDeferred.resolve(meResponse);
+            await meDeferred.promise;
+        });
+
+        expect(result.current.user).toEqual({ email });
+        expect(result.current.isLoggedIn).toBe(true);
+    });
 
     it.each([
         { mode: "normal", reactStrictMode: false },
@@ -119,7 +142,7 @@ describe("AuthProvider", () => {
         async ({ reactStrictMode }) => {
             const refreshResponse = deferredResponse();
             vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
-            vi.mocked(authApi.get).mockResolvedValueOnce(meResponse)
+            vi.mocked(authApi.get).mockResolvedValueOnce(meResponse);
             const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider, reactStrictMode });
 
             expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
@@ -133,7 +156,7 @@ describe("AuthProvider", () => {
             });
 
             expect(authApi.post).toHaveBeenCalledTimes(1);
-            expect(authApi.get).toHaveBeenCalledWith("/me")
+            expect(authApi.get).toHaveBeenCalledExactlyOnceWith("/me");
             expect(result.current.user).toEqual({ email });
             expect(result.current.isLoggedIn).toBe(true);
             expect(result.current.isLoading).toBe(false);

@@ -49,7 +49,6 @@ This project is meant to be a website that allows viewers to browse, search and 
 
 #### Back-end
 
-1. Add a `/me` endpoint that returns the logged-in user's email. The front-end currently restores sessions as a user without an email.
 2. Give the refresh token cookie a `maxAge` matching the token's expiry. It is currently a session cookie that is dropped when the browser closes.
 3. Enforce an absolute session lifetime: a rotated refresh token keeps the expiry of the token it replaces instead of getting a fresh 7 days.
 4. Detect refresh token reuse: presenting an already-rotated token should log the user out.
@@ -60,5 +59,4 @@ This project is meant to be a website that allows viewers to browse, search and 
 
 1. Add an unknown auth state while the refresh on load is in flight, so the login button does not flash on reload.
 2. Add an axios interceptor that refreshes the access token on a 401. It must be registered inside `AuthProvider` to share the in-flight refresh.
-3. Fill in `user.email` from `/me` once it exists.
 
