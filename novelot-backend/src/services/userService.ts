@@ -1,6 +1,6 @@
 import userModel from "@models/userModel.js";
 import { hash, compare } from "bcryptjs"
-import { createAccessToken, createRefreshToken, getUserIdFromRefreshToken, hashRefreshToken, matchesRefreshToken } from "@helpers/token.js"
+import { createAccessToken, createRefreshToken, getUserIdFromAccessToken, getUserIdFromRefreshToken, hashRefreshToken, matchesRefreshToken } from "@helpers/token.js"
 import { type User } from "@apptypes/User.js"
 import { novelotError } from "@helpers/error.js";
 import mongoose from "mongoose"
@@ -87,9 +87,25 @@ async function refreshUser(refreshToken: string): Promise<tokens> {
     const tokens: tokens = { accessToken: newAccessToken, refreshToken: newRefreshToken }
     return tokens
 
+}
 
-
+async function getUserEmailFromAccessToken(accessToken: string): Promise<string> {
+    const userId = getUserIdFromAccessToken(accessToken)
+    if (!(userId instanceof mongoose.Types.ObjectId)) {
+        throw new novelotError(401, "Unauthorized")
+    }
+    let user: User
+    try {
+        user = await userModel.getByID(userId)
+    }
+    catch (err) {
+        if (err instanceof novelotError && err.status === 404) {
+            throw new novelotError(401, "Unauthorized")
+        }
+        throw err
+    }
+    return user.email
 }
 
 
-export default { registerUser, loginUser, refreshUser }
+export default { registerUser, loginUser, refreshUser, getUserEmailFromAccessToken }

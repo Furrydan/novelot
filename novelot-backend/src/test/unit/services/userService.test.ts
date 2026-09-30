@@ -228,3 +228,71 @@ describe("# Refresh User", () => {
         expect(userModel.addRefreshToken).toHaveBeenCalledOnce()
     })
 })
+
+describe("# Get User Email From Access Token", () => {
+    const authorization = "Bearer access-token"
+
+    beforeEach(() => {
+        vi.spyOn(tokenHelpers, "getUserIdFromAccessToken").mockReturnValue(user._id)
+        vi.mocked(userModel.getByID).mockResolvedValue(user)
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    it("Returns the email of the user the token belongs to", async () => {
+        await expect(userService.getUserEmailFromAccessToken(authorization)).resolves.toBe(email)
+
+        expect(tokenHelpers.getUserIdFromAccessToken).toHaveBeenCalledExactlyOnceWith(authorization)
+        expect(userModel.getByID).toHaveBeenCalledExactlyOnceWith(user._id)
+    })
+
+    it("Propagates 401 from verification without accessing the database", async () => {
+        vi.mocked(tokenHelpers.getUserIdFromAccessToken)
+            .mockImplementation(() => { throw new novelotError(401, "Unauthorized") })
+
+        await expect(userService.getUserEmailFromAccessToken(authorization))
+            .rejects.toMatchObject({ status: 401, message: "Unauthorized" })
+
+        expect(userModel.getByID).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        { reason: "string", id: user._id.toString() },
+        { reason: "number", id: 123 },
+        { reason: "plain object", id: {} },
+        { reason: "null", id: null }
+    ])("Rejects an extracted $reason ID before accessing the database", async ({ id }) => {
+        vi.mocked(tokenHelpers.getUserIdFromAccessToken)
+            .mockReturnValue(id as unknown as mongoose.Types.ObjectId)
+
+        await expect(userService.getUserEmailFromAccessToken(authorization))
+            .rejects.toMatchObject({ status: 401, message: "Unauthorized" })
+
+        expect(userModel.getByID).not.toHaveBeenCalled()
+    })
+
+    it("Converts a missing user's 404 into a new 401 error", async () => {
+        const error = new novelotError(404, "User not Found")
+        vi.mocked(userModel.getByID).mockRejectedValue(error)
+
+        const result = userService.getUserEmailFromAccessToken(authorization)
+        await expect(result).rejects.toBeInstanceOf(novelotError)
+        await expect(result).rejects.toMatchObject({ status: 401, message: "Unauthorized" })
+        await expect(result).rejects.not.toBe(error)
+
+        expect(userModel.getByID).toHaveBeenCalledExactlyOnceWith(user._id)
+    })
+
+    it.each([
+        { reason: "database failure", error: new Error("Database unavailable") },
+        { reason: "non-404 application error", error: new novelotError(500, "Database unavailable") }
+    ])("Propagates lookup errors: $reason", async ({ error }) => {
+        vi.mocked(userModel.getByID).mockRejectedValue(error)
+
+        await expect(userService.getUserEmailFromAccessToken(authorization)).rejects.toBe(error)
+
+        expect(userModel.getByID).toHaveBeenCalledExactlyOnceWith(user._id)
+    })
+})

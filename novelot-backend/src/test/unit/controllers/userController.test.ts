@@ -10,13 +10,14 @@ vi.mock("@services/userService.ts", () => ({
     default: {
         loginUser: vi.fn(),
         registerUser: vi.fn(),
-        refreshUser: vi.fn()
+        refreshUser: vi.fn(),
+        getUserEmailFromAccessToken: vi.fn()
     }
 }))
 
 vi.mock("@helpers/token.ts", () => ({
     sendAccessToken: vi.fn(),
-    sendRefreshToken: vi.fn()
+    sendRefreshToken: vi.fn(),
 }))
 
 vi.mock("@helpers/validator.ts", () => ({
@@ -155,5 +156,57 @@ describe("#refresh", () => {
         expect(userService.refreshUser).toHaveBeenCalledExactlyOnceWith(oldRefreshToken)
         expect(sendAccessToken).not.toHaveBeenCalled()
         expect(sendRefreshToken).not.toHaveBeenCalled()
+    })
+})
+
+describe("#me", () => {
+    let req: Request
+    let res: Response
+    const token = "Bearer myToken"
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        vi.mocked(userService.getUserEmailFromAccessToken).mockReset()
+        req = {
+            headers: {
+                authorization: token
+            }
+        } as unknown as Request
+        res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn()
+        } as unknown as Response
+    })
+
+    it.each([
+        { reason: "missing", headers: {} },
+        { reason: "empty", headers: { authorization: "" } }
+    ])("Throws 401 when authorization header is $reason", async ({ headers }) => {
+        req.headers = headers
+        const error = new novelotError(401, "Unauthorized")
+
+        await expect(userController.getMe(req, res)).rejects.toMatchObject(error)
+        expect(userService.getUserEmailFromAccessToken).not.toHaveBeenCalled()
+        expect(res.status).not.toHaveBeenCalled()
+        expect(res.json).not.toHaveBeenCalled()
+    })
+
+    it("Calls service when accessToken exists and send email", async () => {
+        const email = "myEmail"
+        vi.mocked(userService.getUserEmailFromAccessToken).mockResolvedValueOnce(email)
+
+        await userController.getMe(req, res)
+        expect(userService.getUserEmailFromAccessToken).toHaveBeenCalledExactlyOnceWith(token)
+        expect(res.status).toHaveBeenCalledExactlyOnceWith(200)
+        expect(res.json).toHaveBeenCalledExactlyOnceWith({ "email": email })
+    })
+
+    it("Propagates service error without sending response", async () => {
+        const error = new novelotError(401, "Unauthorized")
+        vi.mocked(userService.getUserEmailFromAccessToken).mockRejectedValue(error)
+
+        await expect(userController.getMe(req, res)).rejects.toMatchObject(error)
+        expect(res.status).not.toHaveBeenCalled()
+        expect(res.json).not.toHaveBeenCalled()
     })
 })

@@ -11,5 +11,7 @@ userRouter.post('/register', userController.register)
 
 userRouter.post('/refresh', userController.refresh)
 
+userRouter.get('/me', userController.getMe)
+
 export default userRouter;
 

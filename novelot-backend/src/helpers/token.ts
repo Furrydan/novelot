@@ -64,10 +64,39 @@ export function verifyRefreshToken(refreshToken: string): jwt.JwtPayload | strin
     }
 }
 
+export function extractBearerToken(authorization: string): string {
+    const parts = authorization.split(" ")
+    if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer" || parts[1] === "") {
+        throw new novelotError(401, "Unauthorized")
+    }
+    return parts[1]
+}
+
+export function verifyAccessToken(authorization: string): jwt.JwtPayload | string {
+    const secret = process.env.ACCESS_TOKEN_SECRET
+    if (typeof secret === "undefined") {
+        throw new novelotError(500, "Access Token Secret Key is not defined")
+    }
+    const accessToken = extractBearerToken(authorization)
+    try {
+        return jwt.verify(accessToken, secret)
+    } catch (err) {
+        throw new novelotError(401, "Unauthorized")
+    }
+}
+
 export function getUserIdFromRefreshToken(refreshToken: string): mongoose.Types.ObjectId {
     const payload = verifyRefreshToken(refreshToken)
     if (typeof payload === "string" || typeof payload.userID !== "string"
         || !mongoose.isObjectIdOrHexString(payload.userID)) {
+        throw new novelotError(401, "Unauthorized")
+    }
+    return new mongoose.Types.ObjectId(payload.userID)
+}
+
+export function getUserIdFromAccessToken(authorization: string): mongoose.Types.ObjectId {
+    const payload = verifyAccessToken(authorization)
+    if (typeof payload === "string" || typeof payload.userID !== "string" || !mongoose.isObjectIdOrHexString(payload.userID)) {
         throw new novelotError(401, "Unauthorized")
     }
     return new mongoose.Types.ObjectId(payload.userID)

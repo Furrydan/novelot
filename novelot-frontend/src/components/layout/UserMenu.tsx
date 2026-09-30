@@ -16,7 +16,7 @@ function UserMenu() {
       {isLoggedIn ? (
         <div className="usermenu__trigger">
           <FaUser className="usermenu__icon" />
-          <span className="usermenu__text">{user?.email}</span>
+          <span className="usermenu__text">{user?.email ?? "Account"}</span>
         </div>
       ) : (
         <button type="button" className="usermenu__trigger" onClick={toggle}>
