@@ -7,12 +7,19 @@ import { AuthProvider, useAuth } from "./AuthContext";
 vi.mock("@api/novelClients", () => ({
     authApi: {
         post: vi.fn(),
+        get: vi.fn(),
         defaults: { headers: { common: {} } },
     },
 }));
 
 const email = "reader@example.com";
 const password = "password123";
+
+const meResponse = {
+    data: {
+        email: email
+    }
+}
 
 function deferredResponse() {
     let resolve!: (response: AxiosResponse) => void;
@@ -39,11 +46,70 @@ describe("AuthProvider", () => {
         });
 
         expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
+        expect(authApi.get).not.toHaveBeenCalled();
         expect(result.current.user).toBeNull();
         expect(result.current.isLoggedIn).toBe(false);
         expect(result.current.isLoading).toBe(false);
         expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
     });
+
+    it("shows generic user when /me fails", async () => {
+        const refreshResponse = deferredResponse();
+        vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
+        vi.mocked(authApi.get).mockRejectedValue(new Error("Unauthorized"))
+        const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+        expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
+        expect(result.current.user).toBeNull();
+        expect(result.current.isLoggedIn).toBe(false);
+        expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
+
+        await act(async () => {
+            refreshResponse.resolve({ data: { accessToken: "refresh-token" } } as AxiosResponse);
+            await refreshResponse.promise;
+        });
+
+        expect(authApi.post).toHaveBeenCalledTimes(1);
+        expect(authApi.get).toHaveBeenCalledWith("/me")
+        expect(result.current.user).toEqual({});
+        expect(result.current.isLoggedIn).toBe(true);
+        expect(result.current.isLoading).toBe(false);
+        expect(authApi.defaults.headers.common["Authorization"]).toBe("Bearer refresh-token");
+
+    })
+
+    it.each([{ type: "number", val: 50 },
+    { type: "boolean", val: true }])(
+        "shows generic user when /me returns $type", async ({ val }) => {
+            const refreshResponse = deferredResponse();
+            const getResponse = {
+                data: {
+                    email: val
+                }
+            }
+            vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
+            vi.mocked(authApi.get).mockResolvedValueOnce(getResponse)
+            const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+            expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
+            expect(result.current.user).toBeNull();
+            expect(result.current.isLoggedIn).toBe(false);
+            expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
+
+            await act(async () => {
+                refreshResponse.resolve({ data: { accessToken: "refresh-token" } } as AxiosResponse);
+                await refreshResponse.promise;
+            });
+
+            expect(authApi.post).toHaveBeenCalledTimes(1);
+            expect(authApi.get).toHaveBeenCalledWith("/me")
+            expect(result.current.user).toEqual({});
+            expect(result.current.isLoggedIn).toBe(true);
+            expect(result.current.isLoading).toBe(false);
+            expect(authApi.defaults.headers.common["Authorization"]).toBe("Bearer refresh-token");
+
+        })
+
 
     it.each([
         { mode: "normal", reactStrictMode: false },
@@ -53,6 +119,7 @@ describe("AuthProvider", () => {
         async ({ reactStrictMode }) => {
             const refreshResponse = deferredResponse();
             vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
+            vi.mocked(authApi.get).mockResolvedValueOnce(meResponse)
             const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider, reactStrictMode });
 
             expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
@@ -66,7 +133,8 @@ describe("AuthProvider", () => {
             });
 
             expect(authApi.post).toHaveBeenCalledTimes(1);
-            expect(result.current.user).toEqual({});
+            expect(authApi.get).toHaveBeenCalledWith("/me")
+            expect(result.current.user).toEqual({ email });
             expect(result.current.isLoggedIn).toBe(true);
             expect(result.current.isLoading).toBe(false);
             expect(authApi.defaults.headers.common["Authorization"]).toBe("Bearer refresh-token");
