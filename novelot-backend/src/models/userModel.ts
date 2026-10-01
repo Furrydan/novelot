@@ -62,17 +62,12 @@ async function addNewUser(email: string, password: string): Promise<UserInput> {
 }
 
 async function dropRefreshToken(id: mongoose.Types.ObjectId): Promise<void> {
-  const newUser: User | null = await userModel.findByIdAndUpdate(
-    id,
+  await userModel.updateOne(
+    { _id: id },
     {
       $set: { refreshToken: "" },
     },
-    { returnDocument: "after" },
   );
-
-  if (!newUser) {
-    throw new novelotError(500, "Failed to Remove RefreshToken");
-  }
 }
 
 export default {
