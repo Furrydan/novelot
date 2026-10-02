@@ -116,9 +116,6 @@ async function getUserEmailFromAccessToken(
 
 async function logoutUser(refreshToken: string): Promise<void> {
   const userId = getUserIdFromRefreshToken(refreshToken);
-  if (!(userId instanceof mongoose.Types.ObjectId)) {
-    throw new novelotError(401, "Unauthorized");
-  }
 
   await userModel.dropRefreshToken(userId);
   return;
