@@ -2,10 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Response, Request } from "express";
 import userController from "@controllers/userController.js";
 import userService from "@services/userService.js";
-import { sendAccessToken, sendRefreshToken } from "@helpers/token.ts";
+import {
+  clearRefreshCookie,
+  sendAccessToken,
+  sendRefreshToken,
+} from "@helpers/token.ts";
 import { validateEmail, validatePassword } from "@helpers/validator.ts";
 import { novelotError } from "@helpers/error.js";
-import { cookies } from "supertest";
 
 vi.mock("@services/userService.ts", () => ({
   default: {
@@ -20,6 +23,7 @@ vi.mock("@services/userService.ts", () => ({
 vi.mock("@helpers/token.ts", () => ({
   sendAccessToken: vi.fn(),
   sendRefreshToken: vi.fn(),
+  clearRefreshCookie: vi.fn(),
 }));
 
 vi.mock("@helpers/validator.ts", () => ({
@@ -246,11 +250,11 @@ describe("#logout", () => {
     vi.mocked(userService.logoutUser).mockReset();
     req = { cookies: { refreshToken } } as unknown as Request;
     res = {
-      status: vi.fn(),
+      sendStatus: vi.fn(),
     } as unknown as Response;
   });
 
-  it("Returns 200 with message when successful logout", async () => {
+  it("Clears refresh cookie and sends 204 when successful logout", async () => {
     vi.mocked(userService.logoutUser).mockResolvedValue();
 
     await userController.logout(req, res);
@@ -258,7 +262,11 @@ describe("#logout", () => {
     expect(userService.logoutUser).toHaveBeenCalledExactlyOnceWith(
       refreshToken,
     );
-    expect(res.status).toHaveBeenCalledExactlyOnceWith(204);
+    expect(clearRefreshCookie).toHaveBeenCalledExactlyOnceWith(res);
+    expect(res.sendStatus).toHaveBeenCalledExactlyOnceWith(204);
+    expect(clearRefreshCookie).toHaveBeenCalledBefore(
+      vi.mocked(res.sendStatus),
+    );
   });
 
   it("Throws 401 error when no refresh token is present", async () => {
@@ -267,7 +275,8 @@ describe("#logout", () => {
     const error = new novelotError(401, "Unauthorized");
 
     await expect(userController.logout(req, res)).rejects.toMatchObject(error);
-    expect(res.status).not.toHaveBeenCalled();
+    expect(clearRefreshCookie).not.toHaveBeenCalled();
+    expect(res.sendStatus).not.toHaveBeenCalled();
   });
 
   it("Propagates service errors without sending response", async () => {
@@ -276,6 +285,7 @@ describe("#logout", () => {
 
     await expect(userController.logout(req, res)).rejects.toMatchObject(error);
 
-    expect(res.status).not.toHaveBeenCalled();
+    expect(clearRefreshCookie).not.toHaveBeenCalled();
+    expect(res.sendStatus).not.toHaveBeenCalled();
   });
 });

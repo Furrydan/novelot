@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import userService from "@services/userService.js";
-import { sendAccessToken, sendRefreshToken } from "@helpers/token.js";
+import {
+  clearRefreshCookie,
+  sendAccessToken,
+  sendRefreshToken,
+} from "@helpers/token.js";
 import { validateEmail, validatePassword } from "@helpers/validator.js";
 import { novelotError } from "@/helpers/error.js";
 
@@ -59,7 +63,8 @@ async function logout(req: Request, res: Response) {
 
   await userService.logoutUser(refreshToken);
 
-  res.status(204);
+  clearRefreshCookie(res);
+  res.sendStatus(204);
 }
 
 export default { login, register, refresh, getMe, logout };
