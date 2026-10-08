@@ -19,10 +19,27 @@ const meResponse = { data: { email } } as AxiosResponse;
 
 function deferredResponse() {
     let resolve!: (response: AxiosResponse) => void;
-    const promise = new Promise<AxiosResponse>((done) => {
+    let reject!: (error: Error) => void;
+    const promise = new Promise<AxiosResponse>((done, fail) => {
         resolve = done;
+        reject = fail;
     });
-    return { promise, resolve };
+    return { promise, resolve, reject };
+}
+
+async function renderLoggedIn() {
+    const refreshResponse = deferredResponse();
+    vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
+    vi.mocked(authApi.get).mockResolvedValueOnce(meResponse);
+    const rendered = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    await act(async () => {
+        refreshResponse.resolve({ data: { accessToken: "refresh-token" } } as AxiosResponse);
+        await refreshResponse.promise;
+    });
+
+    expect(rendered.result.current.isLoggedIn).toBe(true);
+    return rendered;
 }
 
 describe("AuthProvider", () => {
@@ -275,6 +292,103 @@ describe("AuthProvider", () => {
 
         expect(authApi.post).toHaveBeenCalledTimes(2);
         expect(authApi.post).toHaveBeenLastCalledWith("/register", { email, password });
+        expect(result.current.user).toBeNull();
+        expect(result.current.isLoggedIn).toBe(false);
+        expect(result.current.isLoading).toBe(false);
+        expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
+    });
+
+    it("logs out, clears the user, and removes the authorization header", async () => {
+        const { result } = await renderLoggedIn();
+        const logoutResponse = deferredResponse();
+        vi.mocked(authApi.post).mockReturnValueOnce(logoutResponse.promise);
+
+        let logoutPromise!: Promise<void>;
+        await act(async () => {
+            logoutPromise = result.current.logout();
+            await Promise.resolve();
+        });
+
+        expect(authApi.post).toHaveBeenLastCalledWith("/logout");
+        expect(result.current.isLoading).toBe(true);
+        expect(result.current.isLoggedIn).toBe(true);
+
+        await act(async () => {
+            logoutResponse.resolve({ status: 200 } as AxiosResponse);
+            await logoutPromise;
+        });
+
+        expect(authApi.post).toHaveBeenCalledTimes(2);
+        expect(result.current.user).toBeNull();
+        expect(result.current.isLoggedIn).toBe(false);
+        expect(result.current.isLoading).toBe(false);
+        expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
+    });
+
+    it("propagates a logout error but still clears the session", async () => {
+        const { result } = await renderLoggedIn();
+        const error = new Error("Logout failed");
+        vi.mocked(authApi.post).mockRejectedValueOnce(error);
+
+        await act(async () => {
+            await expect(result.current.logout()).rejects.toBe(error);
+        });
+
+        expect(authApi.post).toHaveBeenLastCalledWith("/logout");
+        expect(result.current.user).toBeNull();
+        expect(result.current.isLoggedIn).toBe(false);
+        expect(result.current.isLoading).toBe(false);
+        expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
+    });
+
+    it("waits for an in-flight refresh before logging out", async () => {
+        const refreshResponse = deferredResponse();
+        vi.mocked(authApi.post)
+            .mockReset()
+            .mockReturnValueOnce(refreshResponse.promise)
+            .mockResolvedValueOnce({ status: 200 } as AxiosResponse);
+        vi.mocked(authApi.get).mockResolvedValueOnce(meResponse);
+        const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+        let logoutPromise!: Promise<void>;
+        await act(async () => {
+            logoutPromise = result.current.logout();
+            await Promise.resolve();
+        });
+
+        expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
+
+        await act(async () => {
+            refreshResponse.resolve({ data: { accessToken: "refresh-token" } } as AxiosResponse);
+            await logoutPromise;
+        });
+
+        expect(authApi.get).toHaveBeenCalledExactlyOnceWith("/me");
+        expect(authApi.post).toHaveBeenCalledTimes(2);
+        expect(authApi.post).toHaveBeenLastCalledWith("/logout");
+        expect(result.current.user).toBeNull();
+        expect(result.current.isLoggedIn).toBe(false);
+        expect(result.current.isLoading).toBe(false);
+        expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
+    });
+
+    it("skips /logout but still clears the session when the in-flight refresh fails", async () => {
+        const refreshResponse = deferredResponse();
+        const error = new Error("Unauthorized");
+        vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
+        const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+        let logoutPromise!: Promise<void>;
+        act(() => {
+            logoutPromise = result.current.logout();
+        });
+
+        await act(async () => {
+            refreshResponse.reject(error);
+            await expect(logoutPromise).rejects.toBe(error);
+        });
+
+        expect(authApi.post).toHaveBeenCalledExactlyOnceWith("/refresh");
         expect(result.current.user).toBeNull();
         expect(result.current.isLoggedIn).toBe(false);
         expect(result.current.isLoading).toBe(false);

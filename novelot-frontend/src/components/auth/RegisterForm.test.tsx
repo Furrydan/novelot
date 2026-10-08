@@ -16,6 +16,7 @@ const auth: ReturnType<typeof useAuth> = {
     isLoading: false,
     login: vi.fn(),
     register,
+    logout: vi.fn(),
 };
 
 function deferredRegistration() {

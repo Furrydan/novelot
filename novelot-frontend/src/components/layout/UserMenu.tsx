@@ -26,7 +26,11 @@ function UserMenu() {
         </button>
       )}
       {isOpen &&
-        (isLoggedIn ? <AccountDropdown /> : <AuthDropdown onClose={close} />)}
+        (isLoggedIn ? (
+          <AccountDropdown onClose={close} />
+        ) : (
+          <AuthDropdown onClose={close} />
+        ))}
     </div>
   );
 }

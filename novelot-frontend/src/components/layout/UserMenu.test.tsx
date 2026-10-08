@@ -12,6 +12,7 @@ const loggedOutAuth: ReturnType<typeof useAuth> = {
     isLoading: false,
     login: vi.fn(),
     register: vi.fn(),
+    logout: vi.fn(),
 };
 
 describe("UserMenu", () => {
@@ -61,5 +62,32 @@ describe("UserMenu", () => {
         expect(screen.getByText(email)).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "Login / Register" })).not.toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
+    });
+
+    it("shows Account when the logged-in user has no email", () => {
+        vi.mocked(useAuth).mockReturnValue({
+            ...loggedOutAuth,
+            user: {},
+            isLoggedIn: true,
+        });
+
+        render(<UserMenu />);
+
+        expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+
+    it("opens the account dropdown when logged in", async () => {
+        const user = userEvent.setup();
+        vi.mocked(useAuth).mockReturnValue({
+            ...loggedOutAuth,
+            user: { email: "reader@example.com" },
+            isLoggedIn: true,
+        });
+        render(<UserMenu />);
+
+        await user.click(screen.getByRole("button", { name: "reader@example.com" }));
+
+        expect(screen.getByRole("button", { name: "Profile" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
     });
 });
