@@ -11,7 +11,7 @@
 ## Commands and Verification
 
 - `novelot-backend/` and `novelot-frontend/` are independent npm packages with separate lockfiles, not a root workspace. Run `npm ci` and package commands inside the relevant directory.
-- CI (`.github/workflows/test.yml`) uses Node 22 and runs only `npm test` in each package; it does not check builds or lint. Dockerfiles use Node 20.
+- CI (`.github/workflows/test.yml`) uses Node 22 and runs only `npm test` in each package; it does not check builds or lint. Dockerfiles also use Node 22.
 - In either package, `npm test -- --run` runs coverage once; plain `npm test` can enter watch mode locally. For a focused test without coverage, use `npx vitest run <test-path> -t "<test-name>"`.
 - Backend: `npm run build` is type-check-only (`noEmit: true`), despite the configured `dist` directory. Start source with `npm start` (`tsx src/index.ts`), not `node dist/index.js`. Focused suites: `npm run test:unit` and `npm run test:integrations`.
 - Frontend: `npm run build` runs TypeScript checking followed by Vite bundling; `npm run lint` is a separate check. `npm run dev` serves port 5173.
