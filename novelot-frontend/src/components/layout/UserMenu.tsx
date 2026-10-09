@@ -3,6 +3,7 @@ import { FaUser } from "react-icons/fa";
 import { useAuth } from "@/context/AuthContext";
 import AuthDropdown from "@components/auth/AuthDropdown";
 import "./UserMenu.css";
+import AccountDropdown from "./AccountDropdown";
 
 function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,17 +15,22 @@ function UserMenu() {
   return (
     <div className="usermenu">
       {isLoggedIn ? (
-        <div className="usermenu__trigger">
+        <button type="button" className="usermenu__trigger" onClick={toggle}>
           <FaUser className="usermenu__icon" />
           <span className="usermenu__text">{user?.email ?? "Account"}</span>
-        </div>
+        </button>
       ) : (
         <button type="button" className="usermenu__trigger" onClick={toggle}>
           <FaUser className="usermenu__icon" />
           <span className="usermenu__text">Login / Register</span>
         </button>
       )}
-      {isOpen && <AuthDropdown onClose={close} />}
+      {isOpen &&
+        (isLoggedIn ? (
+          <AccountDropdown onClose={close} />
+        ) : (
+          <AuthDropdown onClose={close} />
+        ))}
     </div>
   );
 }
