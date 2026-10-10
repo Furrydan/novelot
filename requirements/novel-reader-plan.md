@@ -16,6 +16,7 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - No separate `id`: `(novelId, chapterNumber)` is the key.
     - No `likes`/`views` until chapter stats are actually designed.
     - `content` is an array of paragraphs. Empty `content: []` is accepted (tested).
+- **Not found**: `chapterModel.getChapter` throws `novelotError(404)`, consistent with `userModel`. Accepted cost: a future "does chapter N exist?" check needs its own model function or a try/catch.
 - **Chapter bounds**: the API returns `totalChapters` with each chapter so Prev/Next can be disabled at the ends.
 - **Layout**: the reader renders inside `Page` (with TopBar), so `BrowserRouter` moves above `Page`.
 - **Settings persistence**: saved to the user account when logged in. Logged-out readers use localStorage.
@@ -37,11 +38,9 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Files: `novelot-backend/src/types/Chapter.ts`, `src/test/unit/types/Chapter.test.ts`
     - Done: guard rejects missing/wrong-type fields, `null` and `undefined`; accepts empty content.
 
-- [ ] **2. Chapter Mongoose model**
+- [x] **2. Chapter Mongoose model**
     - File: `src/models/chapterModel.ts`
-    - Schema, the compound unique index, and the `"chapters"` collection name. Add one function, `getChapter(novelId, chapterNumber)`.
-    - Think about: what should it return when nothing is found? `novelModel` and `userModel` handle "not found" differently.
-    - Done when: it type-checks (`npm run build`).
+    - Done: schema with `content: [String]`, compound unique index, `"chapters"` collection, `getChapter` uses `.lean()` and throws 404 when missing.
 
 - [ ] **3. Count chapters**
     - File: `src/models/chapterModel.ts`
@@ -63,9 +62,10 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
 
 - [ ] **6. Chapter service**
     - Files: `src/services/chapterService.ts`, `src/test/unit/services/chapterService.test.ts`
-    - `getChapter(novelId, chapterNumber)` → `{ ...chapter, totalChapters }`. It throws 404 when the chapter is missing.
+    - `getChapter(novelId, chapterNumber)` → `{ ...chapter, totalChapters }`. The model already throws 404 when the chapter is missing; the service lets it propagate.
     - Mock the model the same way `novelService.test.ts` does.
-    - Done when: the tests pass for found and not found.
+    - Think about: if the chapter is missing, should the service still call `countChapters`? The order of the two calls decides this.
+    - Done when: the tests pass for found (adds `totalChapters`) and not found (the model's 404 rejection propagates unchanged).
 
 - [ ] **7. Controller and route**
     - Files: `src/controllers/chapterController.ts`, `src/routes/novelRouter.ts`, controller unit test
