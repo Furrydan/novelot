@@ -42,11 +42,9 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - File: `src/models/chapterModel.ts`
     - Done: schema with `content: [String]`, compound unique index, `"chapters"` collection, `getChapter` uses `.lean()` and throws 404 when missing.
 
-- [ ] **3. Count chapters**
+- [x] **3. Count chapters**
     - File: `src/models/chapterModel.ts`
-    - Add `countChapters(novelId)` using `countDocuments`.
-    - Think about: why can this query use the `{ novelId, chapterNumber }` index even though it filters only on `novelId`?
-    - Done when: it type-checks.
+    - Done: `getTotalChapters(novelId)` uses `countDocuments({ novelId })`, which can use the compound index because `novelId` is its first field. It returns 0 rather than throwing, because a novel with no chapters still exists.
 
 - [ ] **4. Seed sample chapters**
     - Files: `src/assets/chapterList.json` (2 novels × 3 short chapters), `mongo-init/import.sh` (one more `mongoimport` line)
@@ -64,7 +62,7 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Files: `src/services/chapterService.ts`, `src/test/unit/services/chapterService.test.ts`
     - `getChapter(novelId, chapterNumber)` → `{ ...chapter, totalChapters }`. The model already throws 404 when the chapter is missing; the service lets it propagate.
     - Mock the model the same way `novelService.test.ts` does.
-    - Think about: if the chapter is missing, should the service still call `countChapters`? The order of the two calls decides this.
+    - Think about: if the chapter is missing, should the service still call `getTotalChapters`? The order of the two calls decides this.
     - Done when: the tests pass for found (adds `totalChapters`) and not found (the model's 404 rejection propagates unchanged).
 
 - [ ] **7. Controller and route**

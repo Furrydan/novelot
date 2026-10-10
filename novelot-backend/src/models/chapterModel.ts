@@ -30,4 +30,10 @@ async function getChapter(
   return chapter;
 }
 
-export default { getChapter };
+async function getTotalChapters(novelId: number): Promise<number> {
+  const totalChapters = await chapterModel.countDocuments({ novelId });
+
+  return totalChapters;
+}
+
+export default { getChapter, getTotalChapters };
