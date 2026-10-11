@@ -25,6 +25,7 @@ services:
       - ./mongo-init:/docker-entrypoint-initdb.d  # ← runs on first startup
       - ./novelot-backend/src/assets/novelList.json:/data/import/novelList.json
       - ./novelot-backend/src/assets/userList.json:/data/import/userList.json
+      - ./novelot-backend/src/assets/chapterList.json:/data/import/chapterList.json
 
 volumes:
   mongo_data:
