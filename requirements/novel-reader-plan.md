@@ -55,8 +55,9 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
 
 - [ ] **5. Validate route parameters**
     - Files: `src/helpers/validator.ts`, `src/test/unit/helpers/validator.test.ts`
-    - Add `validatePositiveInt(value, name)`. It throws `novelotError(400, ...)` for `"abc"`, `"0"`, `"-1"` and `"1.5"`.
-    - Done when: the unit tests cover each bad case and one valid case.
+    - Add `validateChapterRoutes(novelId: number, chapterNumber: number)`. It throws `novelotError(400, "Bad Novel Id")` or `novelotError(400, "Bad Chapter Number")` unless the value passes `Number.isInteger(x) && x >= 1`.
+    - The controller (task 7) converts with `Number(req.params.x)` before validating, like `validPage`. So `"abc"` becomes `NaN` and `""` becomes `0`, and both are rejected. Accepted trade-off: lenient strings like `"1e2"` and `" 1"` pass once converted.
+    - Done when: the unit tests reject `NaN`, `0`, `-1`, `1.5` and `Infinity` for each param, and accept valid pairs.
 
 - [ ] **6. Chapter service**
     - Files: `src/services/chapterService.ts`, `src/test/unit/services/chapterService.test.ts`

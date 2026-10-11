@@ -16,3 +16,12 @@ export function validatePassword(password: string): void {
         throw new novelotError(400, "Bad Password")
     }
 }
+
+export function validateChapterRoutes(novelId: number, chapterNumber: number): void {
+    if (!Number.isInteger(novelId) || novelId < 1) {
+        throw new novelotError(400, "Bad Novel Id")
+    }
+    if (!Number.isInteger(chapterNumber) || chapterNumber < 1) {
+        throw new novelotError(400, "Bad Chapter Number")
+    }
+}

@@ -1,9 +1,18 @@
 import { novelotError } from "@helpers/error.js"
-import { validateEmail, validatePassword } from "@helpers/validator.js"
+import { validateChapterRoutes, validateEmail, validatePassword } from "@helpers/validator.js"
 import { describe, expect, it } from "vitest"
 
 const emailError = new novelotError(400, "Bad Email")
 const passwordError = new novelotError(400, "Bad Password")
+const novelIdError = new novelotError(400, "Bad Novel Id")
+const chapterNumberError = new novelotError(400, "Bad Chapter Number")
+const invalidRouteNumbers = [
+    { input: NaN, reason: "NaN" },
+    { input: 0, reason: "Zero" },
+    { input: -1, reason: "Negative" },
+    { input: 1.5, reason: "Decimal" },
+    { input: Infinity, reason: "Infinity" }
+]
 const typeTest = [
     { input: false as unknown as string, reason: "Boolean" },
     { input: 123 as unknown as string, reason: "Number" },
@@ -98,6 +107,21 @@ describe("#password", () => {
     })
     it("Rejects empty password", () => {
         expect(() => validatePassword("")).toThrow(passwordError)
+    })
+})
+
+describe("#chapterRoutes", () => {
+    it.each(invalidRouteNumbers)("Rejects novel id : $reason", ({ input }) => {
+        expect(() => validateChapterRoutes(input, 1)).toThrow(novelIdError)
+    })
+    it.each(invalidRouteNumbers)("Rejects chapter number : $reason", ({ input }) => {
+        expect(() => validateChapterRoutes(1, input)).toThrow(chapterNumberError)
+    })
+    it("Accepts first chapter of first novel", () => {
+        expect(() => validateChapterRoutes(1, 1)).not.toThrow()
+    })
+    it("Accepts larger valid numbers", () => {
+        expect(() => validateChapterRoutes(42, 1500)).not.toThrow()
     })
 })
 
