@@ -6,6 +6,7 @@ export type Novel = {
   views: number;
   description: string;
   tags: string[];
+  totalChapters: number;
 };
 
 export function isNovel(obj: any): obj is Novel {
@@ -16,6 +17,7 @@ export function isNovel(obj: any): obj is Novel {
     typeof obj.likes === 'number' &&
     typeof obj.views === 'number' &&
     typeof obj.description === 'string' &&
-    Array.isArray(obj.tags) && obj.tags.every((tag: unknown) => typeof tag === 'string')
+    Array.isArray(obj.tags) && obj.tags.every((tag: unknown) => typeof tag === 'string') &&
+    typeof obj.totalChapters === 'number'
   )
 }

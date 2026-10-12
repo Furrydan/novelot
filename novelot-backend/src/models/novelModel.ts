@@ -9,7 +9,8 @@ const novelSchema = new mongoose.Schema<Novel>({
     likes: Number,
     views: Number,
     description: String,
-    tags: [String]
+    tags: [String],
+    totalChapters: Number
 })
 
 const novelModel: Model<Novel> = mongoose.model('Novel', novelSchema, "novels")

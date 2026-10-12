@@ -17,7 +17,12 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - No `likes`/`views` until chapter stats are actually designed.
     - `content` is an array of paragraphs. Empty `content: []` is accepted (tested).
 - **Not found**: `chapterModel.getChapter` throws `novelotError(404)`, consistent with `userModel`. Accepted cost: a future "does chapter N exist?" check needs its own model function or a try/catch.
-- **Chapter bounds**: the API returns `totalChapters` with each chapter so Prev/Next can be disabled at the ends.
+- **Chapter bounds**: the reader needs `totalChapters` to disable Next on the last chapter. Prev doesn't need it, because chapter 1 is always first.
+    - `totalChapters` is stored on the novel document. The seed script writes it, and `novelModel.getTotalChapters` reads it.
+    - `chapterService.getChapter` attaches it to each chapter response: `{ ...chapter, totalChapters }`. That way a reader who opens a chapter URL directly gets the content and the bounds in one request.
+    - Accepted: the stored count could drift from the real chapters. That's unlikely, because novels are uploaded once and the seed (or a future upload) writes both together. A chapter added while someone is reading isn't seen until the next chapter request.
+    - Rejected: counting `chapters` with `countDocuments` on every request (the count belongs to the novel, so it's stored there instead). Also rejected: a per-chapter `hasNext` flag, which needs an extra lookup and can't support "Chapter 3 of 12" or a progress bar.
+    - Only the backend `Novel` has the field. The frontend `Novel` and its `novelList.json` fixture are unchanged, because search doesn't use the count and `isNovel` ignores extra keys.
 - **Layout**: the reader renders inside `Page` (with TopBar), so `BrowserRouter` moves above `Page`.
 - **Settings persistence**: saved to the user account when logged in. Logged-out readers use localStorage.
 - **Settings styling**: JS state holds the choice, CSS holds the look. Theme and font use `data-theme` / `data-font` attributes with CSS custom properties. Font size is passed as a single custom property via `style`.
@@ -45,6 +50,7 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
 - [x] **3. Count chapters**
     - File: `src/models/chapterModel.ts`
     - Done: `getTotalChapters(novelId)` uses `countDocuments({ novelId })`, which can use the compound index because `novelId` is its first field. It returns 0 rather than throwing, because a novel with no chapters still exists.
+    - Superseded by task 5b: the count is now stored on the novel, and `chapterModel.getTotalChapters` is removed.
 
 - [ ] **4. Seed sample chapters**
     - Files: `src/assets/chapterList.json` (2 novels × 3 short chapters), `mongo-init/import.sh` (one more `mongoimport` line)
@@ -59,12 +65,19 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - The controller (task 7) converts with `Number(req.params.x)` before validating, like `validPage`. So `"abc"` becomes `NaN` and `""` becomes `0`, and both are rejected. Accepted trade-off: lenient strings like `"1e2"` and `" 1"` pass once converted.
     - Done when: the unit tests reject `NaN`, `0`, `-1`, `1.5` and `Infinity` for each param, and accept valid pairs.
 
+- [ ] **5b. Store totalChapters on novels**
+    - Files: backend `src/types/Novel.ts` and its test, `src/models/novelModel.ts`, `src/helpers/epub/epubToSeed.ts`, `src/assets/novelList.json`, `src/models/chapterModel.ts`
+    - Add `totalChapters: number` to the backend type, guard and schema. `novelController` filters search results through `isNovel`, so any novel missing the field disappears from search.
+    - `epubToSeed.ts` sets `totalChapters` from the filtered chapter count. Rerun it to regenerate `novelList.json`.
+    - Add `novelModel.getTotalChapters(novelId)`: it uses `findOne({ id: novelId }).lean()` and throws `novelotError(404, "Novel Not Found")` when the novel is missing. Remove `chapterModel.getTotalChapters`.
+    - Done when: backend `npm test -- --run` passes.
+
 - [ ] **6. Chapter service**
     - Files: `src/services/chapterService.ts`, `src/test/unit/services/chapterService.test.ts`
-    - `getChapter(novelId, chapterNumber)` → `{ ...chapter, totalChapters }`. The model already throws 404 when the chapter is missing; the service lets it propagate.
-    - Mock the model the same way `novelService.test.ts` does.
+    - `getChapter(novelId, chapterNumber)` → `{ ...chapter, totalChapters }`, using `chapterModel.getChapter` and `novelModel.getTotalChapters`. Both models throw 404s; the service lets them propagate.
+    - Mock both models the same way `novelService.test.ts` does.
     - Think about: if the chapter is missing, should the service still call `getTotalChapters`? The order of the two calls decides this.
-    - Done when: the tests pass for found (adds `totalChapters`) and not found (the model's 404 rejection propagates unchanged).
+    - Done when: the tests pass for found (adds `totalChapters`), chapter not found (404 propagates, novel model not called) and novel not found (404 propagates).
 
 - [ ] **7. Controller and route**
     - Files: `src/controllers/chapterController.ts`, `src/routes/novelRouter.ts`, controller unit test
@@ -74,7 +87,7 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
 
 - [ ] **8. Integration test**
     - File: `src/test/integrations/getChapter.test.ts` (use `getAllNovels.test.ts` as a template)
-    - Cases: 200 with `totalChapters`, 404 for a missing chapter, 400 for a bad parameter.
+    - Cases: 200 with `totalChapters`, 404 for a missing chapter, 400 for a bad parameter. Seed a novel (with `totalChapters`) as well as its chapters.
     - Done when: `npm run test:integrations` passes.
 
 ## Phase 3: Frontend reader

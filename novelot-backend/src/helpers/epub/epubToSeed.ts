@@ -55,6 +55,7 @@ async function parseEpub(
     tags: $opf("dc\\:subject")
       .map((_, el) => $opf(el).text().trim())
       .get(),
+    totalChapters: 0,
   };
 
   const manifest = new Map<string, string>();
@@ -133,11 +134,13 @@ async function parseEpub(
     });
   }
 
+  const readableChapters = chapters
+    .filter((chapter) => chapter.content.length > 0)
+    .map((chapter, index) => ({ ...chapter, chapterNumber: index + 1 }));
+
   return {
-    novel,
-    chapters: chapters
-      .filter((chapter) => chapter.content.length > 0)
-      .map((chapter, index) => ({ ...chapter, chapterNumber: index + 1 })),
+    novel: { ...novel, totalChapters: readableChapters.length },
+    chapters: readableChapters,
   };
 }
 

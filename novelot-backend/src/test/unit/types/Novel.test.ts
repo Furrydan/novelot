@@ -9,7 +9,8 @@ describe("#isNovel", () => {
         likes: 1,
         views: 1,
         description: "XX",
-        tags: ["Hi", "You"]
+        tags: ["Hi", "You"],
+        totalChapters: 3
     }
 
     it("Accepts validNovel", () => {
@@ -65,6 +66,13 @@ describe("#isNovel", () => {
         expect(isNovel(rest)).toBe(false)
         expect(isNovel(invalidNovel)).toBe(false)
         expect(isNovel(invalidNovel2)).toBe(false)
+    })
+
+    it("Rejects without totalChapters", () => {
+        const { totalChapters, ...rest } = validNovel
+        let invalidNovel = { totalChapters: "hi", ...rest }
+        expect(isNovel(rest)).toBe(false)
+        expect(isNovel(invalidNovel)).toBe(false)
     })
 })
 
