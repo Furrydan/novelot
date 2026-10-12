@@ -52,40 +52,40 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Done: `getTotalChapters(novelId)` uses `countDocuments({ novelId })`, which can use the compound index because `novelId` is its first field. It returns 0 rather than throwing, because a novel with no chapters still exists.
     - Superseded by task 5b: the count is now stored on the novel, and `chapterModel.getTotalChapters` is removed.
 
-- [ ] **4. Seed sample chapters**
+- [x] **4. Seed sample chapters**
     - Files: `src/assets/chapterList.json` (2 novels × 3 short chapters), `mongo-init/import.sh` (one more `mongoimport` line)
     - Note: `import.sh` only runs on a fresh volume, and `mongoimport` doesn't create indexes (Mongoose's autoIndex does on startup).
     - Done when: after recreating the volume, `chapters` has 6 documents in Compass, and `getIndexes` shows the compound index once the backend has started.
 
 ## Phase 2: Backend API
 
-- [ ] **5. Validate route parameters**
+- [x] **5. Validate route parameters**
     - Files: `src/helpers/validator.ts`, `src/test/unit/helpers/validator.test.ts`
     - Add `validateChapterRoutes(novelId: number, chapterNumber: number)`. It throws `novelotError(400, "Bad Novel Id")` or `novelotError(400, "Bad Chapter Number")` unless the value passes `Number.isInteger(x) && x >= 1`.
     - The controller (task 7) converts with `Number(req.params.x)` before validating, like `validPage`. So `"abc"` becomes `NaN` and `""` becomes `0`, and both are rejected. Accepted trade-off: lenient strings like `"1e2"` and `" 1"` pass once converted.
     - Done when: the unit tests reject `NaN`, `0`, `-1`, `1.5` and `Infinity` for each param, and accept valid pairs.
 
-- [ ] **5b. Store totalChapters on novels**
+- [x] **5b. Store totalChapters on novels**
     - Files: backend `src/types/Novel.ts` and its test, `src/models/novelModel.ts`, `src/helpers/epub/epubToSeed.ts`, `src/assets/novelList.json`, `src/models/chapterModel.ts`
     - Add `totalChapters: number` to the backend type, guard and schema. `novelController` filters search results through `isNovel`, so any novel missing the field disappears from search.
     - `epubToSeed.ts` sets `totalChapters` from the filtered chapter count. Rerun it to regenerate `novelList.json`.
     - Add `novelModel.getTotalChapters(novelId)`: it uses `findOne({ id: novelId }).lean()` and throws `novelotError(404, "Novel Not Found")` when the novel is missing. Remove `chapterModel.getTotalChapters`.
     - Done when: backend `npm test -- --run` passes.
 
-- [ ] **6. Chapter service**
+- [x] **6. Chapter service**
     - Files: `src/services/chapterService.ts`, `src/test/unit/services/chapterService.test.ts`
     - `getChapter(novelId, chapterNumber)` → `{ ...chapter, totalChapters }`, using `chapterModel.getChapter` and `novelModel.getTotalChapters`. Both models throw 404s; the service lets them propagate.
     - Mock both models the same way `novelService.test.ts` does.
     - Think about: if the chapter is missing, should the service still call `getTotalChapters`? The order of the two calls decides this.
     - Done when: the tests pass for found (adds `totalChapters`), chapter not found (404 propagates, novel model not called) and novel not found (404 propagates).
 
-- [ ] **7. Controller and route**
+- [x] **7. Controller and route**
     - Files: `src/controllers/chapterController.ts`, `src/routes/novelRouter.ts`, controller unit test
     - Route: `GET /api/novels/:novelId/chapters/:chapterNumber`. Validate the params, call the service, return 200.
     - Think about: should the route live in `novelRouter` or in its own router mounted under it? Why?
     - Done when: the controller unit test passes, and `curl localhost:1714/api/novels/1/chapters/1` works against Compose.
 
-- [ ] **8. Integration test**
+- [x] **8. Integration test**
     - File: `src/test/integrations/getChapter.test.ts` (use `getAllNovels.test.ts` as a template)
     - Cases: 200 with `totalChapters`, 404 for a missing chapter, 400 for a bad parameter. Seed a novel (with `totalChapters`) as well as its chapters.
     - Done when: `npm run test:integrations` passes.
