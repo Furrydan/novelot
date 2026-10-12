@@ -21,7 +21,12 @@ async function getChapter(
   novelId: number,
   chapterNumber: number,
 ): Promise<Chapter> {
-  const chapter = await chapterModel.findOne({ novelId, chapterNumber }).lean();
+  const chapter: Chapter | null = await chapterModel
+    .findOne(
+      { novelId, chapterNumber },
+      { _id: 0, novelId: 1, chapterNumber: 1, title: 1, content: 1 },
+    )
+    .lean();
 
   if (!chapter) {
     throw new novelotError(404, "Chapter Not Found");
