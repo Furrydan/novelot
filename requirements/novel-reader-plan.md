@@ -97,13 +97,15 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Put `BrowserRouter` in `main.tsx`, above `AuthProvider`, so TopBar can use `<Link>` and `AuthProvider` can use `useNavigate`. App tests wrap `App` in `MemoryRouter`.
     - Done when: search still works and the existing tests pass. Fix any tests that render `App` without a router.
 
-- [ ] **10. Frontend Chapter type and guard**
+- [x] **10. Frontend Chapter type and guard**
     - Files: `src/types/Chapter.ts` and its test. Keep it in sync with the backend copy (AGENTS.md contract).
+    - `Chapter` mirrors the backend; `ChapterResponse = Chapter & { totalChapters }` describes the API payload, checked by `isChapterResponse`.
+    - Guards take `unknown` and require `novelId`, `chapterNumber` and `totalChapters` to be integers ≥ 1 (stricter than the backend guard). No `chapterNumber <= totalChapters` check.
     - Done when: the guard tests pass.
 
 - [ ] **11. API call**
     - File: `src/api/novelClients.ts` (or wherever `UseNovels.ts` makes its call)
-    - Add `getChapter(novelId, chapterNumber)` using the existing `api` instance, and check the response with `isChapter`.
+    - Add `getChapter(novelId, chapterNumber)` using the existing `api` instance, and check the response with `isChapterResponse`.
     - Done when: it type-checks (`npm run build`).
 
 - [ ] **12. Route and Reader skeleton**
