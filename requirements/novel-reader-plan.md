@@ -92,9 +92,9 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
 
 ## Phase 3: Frontend reader
 
-- [ ] **9. Move the Router above Page**
-    - Files: `novelot-frontend/src/main.tsx`, `src/App.tsx`
-    - Put `BrowserRouter` in `main.tsx` so TopBar can use `<Link>` too.
+- [x] **9. Move the Router above Page**
+    - Files: `novelot-frontend/src/main.tsx`, `src/App.tsx`, `src/App.test.tsx`
+    - Put `BrowserRouter` in `main.tsx`, above `AuthProvider`, so TopBar can use `<Link>` and `AuthProvider` can use `useNavigate`. App tests wrap `App` in `MemoryRouter`.
     - Done when: search still works and the existing tests pass. Fix any tests that render `App` without a router.
 
 - [ ] **10. Frontend Chapter type and guard**
