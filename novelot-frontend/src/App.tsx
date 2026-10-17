@@ -5,13 +5,13 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
-    <Page>
-      <Router>
+    <Router>
+      <Page>
         <Routes>
           <Route path="/" element={<NovelSearch />} />
         </Routes>
-      </Router>
-    </Page>
+      </Page>
+    </Router>
   );
 }
 
