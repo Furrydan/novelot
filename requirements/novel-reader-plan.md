@@ -103,26 +103,25 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Guards take `unknown` and require `novelId`, `chapterNumber` and `totalChapters` to be integers ≥ 1 (stricter than the backend guard). No `chapterNumber <= totalChapters` check.
     - Done when: the guard tests pass.
 
-- [ ] **11. API call**
-    - File: `src/api/novelClients.ts` (or wherever `UseNovels.ts` makes its call)
-    - Add `getChapter(novelId, chapterNumber)` using the existing `api` instance, and check the response with `isChapterResponse`.
-    - Done when: it type-checks (`npm run build`).
+- [x] **11. API call**
+    - Merged into Task 13: the request and `isChapterResponse` check live inline in `useChapter`, matching `UseNovels.ts`. An invalid reply throws.
 
-- [ ] **12. Route and Reader skeleton**
-    - Files: `src/components/reader/Reader.tsx`, `src/App.tsx`, `Reader.test.tsx`
-    - Route: `/novels/:novelId/chapters/:chapterNumber`. For now Reader only shows the parsed params.
-    - Test with `MemoryRouter initialEntries={["/novels/1/chapters/2"]}`.
-    - Done when: opening the URL directly (and refreshing it) shows the params.
+- [x] **12. Route and Reader skeleton**
+    - Files: `src/components/reader/Reader.tsx`, `src/App.tsx`, `Reader.test.tsx`, `App.test.tsx`
+    - Route: `/novels/:novelId/chapters/:chapterNumber`. Reader reads the params with `useParams` and converts them with `Number()`. A bad URL (`NaN`) is left to the backend's 400, which surfaces as the reader's error state.
+    - Tests need `MemoryRouter` plus a matching `Route`, or `useParams` comes back empty.
 
-- [ ] **13. `useChapter` hook**
-    - Files: `src/components/reader/logic/useChapter.ts` and its test (copy the structure of `UseNovels.ts`)
-    - Returns `{ chapter, loading, error }` and fetches again when the params change.
-    - Think about: what happens if the user clicks Next twice quickly and the responses come back in the wrong order?
-    - Done when: the tests pass for loading, success, error and a param change.
+- [x] **13. `useChapter` hook**
+    - Files: `src/components/reader/logic/useChapter.ts` and its test
+    - `useChapter(novelId, chapterNumber)` returns the `ChapterResponse` directly using React 19 `use(promise)`. It suspends while pending and throws on a failed request or an invalid reply.
+    - Promises are cached in a module-level `Map` keyed by `novelId/chapterNumber`, so a retried render reuses the same promise. Out-of-order replies can't show, because the screen only reads the current key's promise.
+    - Failures stay cached on purpose: evicting on reject makes React retry, refetch and fail forever. Recovery is a page reload, which empties the cache.
+    - Rejected: a hook returning `{ chapter, loading, error }`. Resetting state in `useEffect` trips `react-hooks/set-state-in-effect`.
+    - Tests: `renderHook` with a `Suspense` wrapper inside `await act(...)`; `vi.resetModules()` in `beforeEach` for a fresh cache; errors checked with `.rejects.toThrow`.
 
 - [ ] **14. Render the chapter**
-    - Files: `Reader.tsx`, `Reader.css`
-    - Show the title and the content as paragraphs, plus loading and error states.
+    - Files: `Reader.tsx`, `ChapterContent.tsx`, `ErrorBoundary.tsx`, `Reader.css`, tests
+    - `ChapterContent` calls `useChapter` and shows the title and the content as paragraphs. `Reader` wraps it in an error boundary (fallback: message plus a Reload button) and `Suspense` (fallback: loading). The boundary is keyed by chapter, so navigation resets the error and shows the loading fallback.
     - Done when: a seeded chapter shows in the browser.
 
 - [ ] **15. Prev/Next navigation**

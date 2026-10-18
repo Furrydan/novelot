@@ -12,6 +12,10 @@ vi.mock("@components/search/NovelSearch", () => ({
   default: () => <div>search page</div>,
 }));
 
+vi.mock("@components/reader/Reader", () => ({
+  default: () => <div>reader page</div>,
+}));
+
 describe("#routes", () => {
   it("Shows correct default route", () => {
     render(
@@ -21,5 +25,15 @@ describe("#routes", () => {
     );
 
     expect(screen.getByText("search page")).toBeInTheDocument();
+  });
+
+  it("Shows the reader on a chapter route", () => {
+    render(
+      <MemoryRouter initialEntries={["/novels/1/chapters/2"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("reader page")).toBeInTheDocument();
   });
 });
