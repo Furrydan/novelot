@@ -1,0 +1,9 @@
+.chapter-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.chapter-title {
+  align-self: center;
+  font-weight: 900;
+}
