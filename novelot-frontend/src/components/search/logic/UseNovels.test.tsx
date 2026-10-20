@@ -98,6 +98,7 @@ describe("useNovels /all", () => {
                 }
             }
         })
+        vi.spyOn(console, "error").mockImplementation(() => {})
         currentPage = 3
         rerender({ search, currentPage, limit })
 

@@ -107,6 +107,21 @@ describe("useChapter", () => {
     );
   });
 
+  it.each([
+    [NaN, 2],
+    [12, NaN],
+  ])(
+    "Throws without requesting when params are (%s, %s)",
+    async (novelId, chapterNumber) => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+
+      await expect(renderUseChapter(novelId, chapterNumber)).rejects.toThrow(
+        "Invalid chapter params",
+      );
+      expect(api.get).not.toHaveBeenCalled();
+    },
+  );
+
   it("Fetches the new chapter when the params change", async () => {
     vi.mocked(api.get)
       .mockResolvedValueOnce({ data: chapterFor(1, 1) })

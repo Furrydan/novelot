@@ -19,6 +19,9 @@ async function fetchChapter(
 }
 
 function useChapter(novelId: number, chapterNumber: number): ChapterResponse {
+  if (Number.isNaN(novelId) || Number.isNaN(chapterNumber)) {
+    throw new Error("Invalid chapter params");
+  }
   const key = `${novelId}/${chapterNumber}`;
   let promise = chapterCache.get(key);
   if (!promise) {

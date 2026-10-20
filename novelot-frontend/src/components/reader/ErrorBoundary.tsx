@@ -17,12 +17,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div>
-          <p>Could not load this chapter.</p>
-          <button onClick={() => window.location.reload()}>Reload</button>
-        </div>
-      );
+      return <p>Could not load this chapter.</p>;
     }
     return this.props.children;
   }
