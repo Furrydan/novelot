@@ -124,9 +124,13 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - `ChapterContent` calls `useChapter` and shows the title and the content as paragraphs. `Reader` wraps it in an error boundary (fallback: message plus a Reload button) and `Suspense` (fallback: loading). The boundary is keyed by chapter, so navigation resets the error and shows the loading fallback.
     - Done when: a seeded chapter shows in the browser.
 
-- [ ] **15. Prev/Next navigation**
-    - Files: `Reader.tsx` (or a `ChapterNav.tsx`), tests
-    - Navigate to the neighbouring URL. Prev is disabled on chapter 1 and Next is disabled at `totalChapters`. Scroll to the top on change.
+- [x] **15. Prev/Next navigation**
+    - Files: `ChapterContent.tsx`, `ChapterContent.css`, `Reader.tsx`, `Reader.css`, tests
+    - Prev/Next are `<button type="button">`s in a `<nav>` inside `ChapterContent` that call `useNavigate` with the neighbouring URL. Between them sits an "n of total" counter. Prev is disabled at `chapterNumber <= 1` and Next at `chapterNumber >= totalChapters`.
+    - Kept buttons over `<Link>` for the built-in `disabled` state. Accepted cost: no middle-click into a new tab and no URL preview on hover.
+    - `Reader` scrolls to the top in a `useEffect` keyed on `[novelId, chapterNumber]`. `Reader` stays mounted between chapters, so the effect runs as soon as the URL changes, and it also covers typed URLs and back/forward. Accepted cost: back doesn't restore the previous scroll position.
+    - CSS uses BEM (`chapter`, `chapter__*`). Hover only applies to `:enabled` buttons.
+    - Tests: `useNavigate` is mocked with `vi.hoisted` + `vi.mock("react-router-dom")`, so `ChapterContent` tests need no Router. The scroll test uses `createMemoryRouter` + `router.navigate` to change the URL while `Reader` stays mounted. `window.scrollTo` is spied in `beforeEach` because jsdom doesn't implement it.
     - Done when: the tests cover both bounds, and the browser back button returns to the previous chapter.
 
 - [ ] **16. Entry point from search**
@@ -140,6 +144,7 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - File: `Reader.css`
     - Define `--reader-bg`, `--reader-fg` and `--reader-font` under `.reader[data-theme="light"|"dark"]` and `[data-font=...]`. Font size uses `var(--reader-font-size)` with a fallback.
     - Test it by hard-coding `data-theme="dark"` on the root in JSX for now.
+    - Replace the hard-coded `white` / `black` / `grey` in `ChapterContent.css` with the custom properties. The reader root's class is now `chapter`, not `reader`.
     - Done when: switching the hard-coded attribute changes the look.
 
 - [ ] **18. `useReaderSettings` hook (state only)**

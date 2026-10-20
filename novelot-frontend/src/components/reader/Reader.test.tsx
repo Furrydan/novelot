@@ -1,6 +1,12 @@
 import { render, screen, act, cleanup } from "@testing-library/react";
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import {
+  MemoryRouter,
+  Routes,
+  Route,
+  createMemoryRouter,
+  RouterProvider,
+} from "react-router-dom";
 import Reader from "./Reader";
 import { use } from "react";
 
@@ -45,6 +51,10 @@ vi.mock("./ChapterContent", () => ({
 }));
 
 describe("Reader", () => {
+  beforeEach(() => {
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+  });
+
   afterEach(() => {
     pending = deferredPromise();
     vi.restoreAllMocks();
@@ -74,5 +84,30 @@ describe("Reader", () => {
     expect(
       screen.getByText("Could not load this chapter."),
     ).toBeInTheDocument();
+  });
+
+  it("Scrolls to top on novel or chapter change", async () => {
+    const scrollTo = vi.mocked(window.scrollTo);
+    const router = createMemoryRouter(
+      [
+        {
+          path: "/novels/:novelId/chapters/:chapterNumber",
+          element: <Reader />,
+        },
+      ],
+      { initialEntries: ["/novels/12/chapters/2"] },
+    );
+
+    await act(async () => render(<RouterProvider router={router} />));
+    expect(scrollTo).toHaveBeenCalledExactlyOnceWith({
+      top: 0,
+      behavior: "instant",
+    });
+
+    await act(async () => router.navigate("/novels/12/chapters/3"));
+    expect(scrollTo).toHaveBeenCalledTimes(2);
+
+    await act(async () => router.navigate("/novels/13/chapters/3"));
+    expect(scrollTo).toHaveBeenCalledTimes(3);
   });
 });

@@ -1,9 +1,42 @@
-.chapter-content {
+.chapter__content {
   display: flex;
   flex-direction: column;
 }
 
-.chapter-title {
+.chapter__title {
   align-self: center;
   font-weight: 900;
+}
+
+.chapter__buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1em;
+}
+
+.chapter__buttons__button {
+  min-width: 80px;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 8px;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+
+.chapter__buttons__button:disabled {
+  border: none;
+  background-color: grey;
+  color: white;
+  cursor: not-allowed;
+}
+
+.chapter__buttons__button:enabled:hover {
+  color: white;
+  background-color: black;
+}
+
+.chapter__buttons__text {
+  font-weight: 800;
 }
