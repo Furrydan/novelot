@@ -1,6 +1,35 @@
+.chapter[data-theme="light"] {
+  --reader-bg: white;
+  --reader-fg: black;
+  --reader-disabled-bg: grey;
+  --reader-disabled-fg: white;
+}
+
+.chapter[data-theme="dark"] {
+  --reader-bg: #121212;
+  --reader-fg: #e0e0e0;
+  --reader-disabled-bg: #444;
+  --reader-disabled-fg: #999;
+}
+
+.chapter[data-font="system"] {
+  --reader-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.chapter[data-font="serif"] {
+  --reader-font: "Literata", Georgia, serif;
+}
+
+.chapter[data-font="sans"] {
+  --reader-font: "Atkinson Hyperlegible", Arial, sans-serif;
+}
+
 .chapter {
+  font-family: var(--reader-font);
   max-width: 80%;
   margin: auto;
   padding: 1em;
-  border: 1px solid black;
+  background-color: var(--reader-bg);
+  color: var(--reader-fg);
+  border: 1px solid var(--reader-fg);
 }
