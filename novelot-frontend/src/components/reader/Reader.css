@@ -26,6 +26,7 @@
 
 .chapter {
   font-family: var(--reader-font);
+  font-size: var(--reader-font-size, 18px);
   max-width: 80%;
   margin: auto;
   padding: 1em;
