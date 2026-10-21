@@ -66,7 +66,7 @@ describe("AuthProvider", () => {
         expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
     });
 
-    it("shows generic user when /me fails", async () => {
+    it("stays logged out when /me fails", async () => {
         const refreshResponse = deferredResponse();
         vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
         vi.mocked(authApi.get).mockRejectedValue(new Error("Unauthorized"));
@@ -84,10 +84,10 @@ describe("AuthProvider", () => {
 
         expect(authApi.post).toHaveBeenCalledTimes(1);
         expect(authApi.get).toHaveBeenCalledExactlyOnceWith("/me");
-        expect(result.current.user).toEqual({});
-        expect(result.current.isLoggedIn).toBe(true);
+        expect(result.current.user).toBeNull();
+        expect(result.current.isLoggedIn).toBe(false);
         expect(result.current.isLoading).toBe(false);
-        expect(authApi.defaults.headers.common["Authorization"]).toBe("Bearer refresh-token");
+        expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
     });
 
     it.each([
@@ -96,7 +96,7 @@ describe("AuthProvider", () => {
         { type: "null", data: { email: null } },
         { type: "no email", data: {} },
     ])(
-        "shows generic user when /me returns $type", async ({ data }) => {
+        "stays logged out when /me returns $type", async ({ data }) => {
             const refreshResponse = deferredResponse();
             vi.mocked(authApi.post).mockReset().mockReturnValueOnce(refreshResponse.promise);
             vi.mocked(authApi.get).mockResolvedValueOnce({ data } as AxiosResponse);
@@ -114,10 +114,10 @@ describe("AuthProvider", () => {
 
             expect(authApi.post).toHaveBeenCalledTimes(1);
             expect(authApi.get).toHaveBeenCalledExactlyOnceWith("/me");
-            expect(result.current.user).toEqual({});
-            expect(result.current.isLoggedIn).toBe(true);
+            expect(result.current.user).toBeNull();
+            expect(result.current.isLoggedIn).toBe(false);
             expect(result.current.isLoading).toBe(false);
-            expect(authApi.defaults.headers.common["Authorization"]).toBe("Bearer refresh-token");
+            expect(authApi.defaults.headers.common["Authorization"]).toBeUndefined();
         },
     );
 

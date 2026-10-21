@@ -10,8 +10,7 @@ import {
 import { authApi } from "@api/novelClients";
 
 export type User = {
-  // Optional until /me exists: a session restored via /refresh has no email.
-  email?: string;
+  email: string;
 };
 
 type AuthContextValue = {
@@ -50,12 +49,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const emailResponse = await authApi.get("/me");
           const email = emailResponse.data.email;
           if (typeof email !== "string") {
-            setUser({});
-          } else {
-            setUser({ email });
+            throw new Error("Invalid /me response");
           }
+          setUser({ email });
         } catch {
-          setUser({});
+          accessTokenRef.current = null;
+          delete authApi.defaults.headers.common["Authorization"];
         }
       } finally {
         refreshPromiseRef.current = null;

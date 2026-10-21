@@ -64,17 +64,6 @@ describe("UserMenu", () => {
         expect(screen.queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
     });
 
-    it("shows Account when the logged-in user has no email", () => {
-        vi.mocked(useAuth).mockReturnValue({
-            ...loggedOutAuth,
-            user: {},
-            isLoggedIn: true,
-        });
-
-        render(<UserMenu />);
-
-        expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
-    });
 
     it("opens the account dropdown when logged in", async () => {
         const user = userEvent.setup();
