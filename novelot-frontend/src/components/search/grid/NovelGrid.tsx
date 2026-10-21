@@ -3,10 +3,11 @@ import Tag from "@components/search/tags/Tag";
 import { FaHeart } from "react-icons/fa";
 import thumbnail from "@assets/Elise.png";
 import type { Novel } from "@novelot-types/Novel";
+import { Link } from "react-router-dom";
 
 function NovelGrid({ novel }: { novel: Novel }) {
     return (
-        <div className="novel-grid">
+        <Link className="novel-grid" to={`/novels/${novel.id}/chapters/1`}>
             <div className="novel-grid-thumbnail">
                 <img className="novel-grid-thumbnail-image" src={thumbnail} alt={novel.title + " Thumbnail"} />
             </div>
@@ -29,7 +30,7 @@ function NovelGrid({ novel }: { novel: Novel }) {
                     <Tag key={index} tag={tag} />
                 ))}
             </div>
-        </div>
+        </Link>
     );
 }
 

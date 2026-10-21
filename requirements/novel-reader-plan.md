@@ -119,7 +119,7 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Rejected: a hook returning `{ chapter, loading, error }`. Resetting state in `useEffect` trips `react-hooks/set-state-in-effect`.
     - Tests: `renderHook` with a `Suspense` wrapper inside `await act(...)`; `vi.resetModules()` in `beforeEach` for a fresh cache; errors checked with `.rejects.toThrow`.
 
-- [ ] **14. Render the chapter**
+- [x] **14. Render the chapter**
     - Files: `Reader.tsx`, `ChapterContent.tsx`, `ErrorBoundary.tsx`, `Reader.css`, tests
     - `ChapterContent` calls `useChapter` and shows the title and the content as paragraphs. `Reader` wraps it in an error boundary (fallback: message plus a Reload button) and `Suspense` (fallback: loading). The boundary is keyed by chapter, so navigation resets the error and shows the loading fallback.
     - Done when: a seeded chapter shows in the browser.
@@ -133,7 +133,7 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Tests: `useNavigate` is mocked with `vi.hoisted` + `vi.mock("react-router-dom")`, so `ChapterContent` tests need no Router. The scroll test uses `createMemoryRouter` + `router.navigate` to change the URL while `Reader` stays mounted. `window.scrollTo` is spied in `beforeEach` because jsdom doesn't implement it.
     - Done when: the tests cover both bounds, and the browser back button returns to the previous chapter.
 
-- [ ] **16. Entry point from search**
+- [x] **16. Entry point from search**
     - Files: `src/components/search/grid/NovelGrid.tsx` and its test
     - Each novel card links to `/novels/:id/chapters/1`.
     - Done when: clicking a card opens chapter 1.

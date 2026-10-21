@@ -4,6 +4,8 @@
   background-color: #000;
   max-width: 15em;
   border-radius: 8px;
+  display: block;
+  text-decoration: none;
 }
 
 .novel-grid-thumbnail {
