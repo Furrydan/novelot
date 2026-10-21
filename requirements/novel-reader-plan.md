@@ -26,6 +26,12 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
 - **Layout**: the reader renders inside `Page` (with TopBar), so `BrowserRouter` moves above `Page`.
 - **Settings persistence**: saved to the user account when logged in. Logged-out readers use localStorage.
 - **Settings styling**: JS state holds the choice, CSS holds the look. Theme and font use `data-theme` / `data-font` attributes with CSS custom properties. Font size is passed as a single custom property via `style`.
+- **Settings state**: a `ReaderSettingsContext`, following the `AuthContext` pattern, with its provider in `main.tsx` inside `AuthProvider`. That way task 27 loads account settings once per login and can react to `useAuth()`.
+    - Scope: reader only. The `data-*` attributes stay on the reader root, not `<html>`.
+    - API: one `settings` object (`{ theme, font, fontSize }`) plus named actions (`setTheme`, `setFont`, `increaseFontSize`, `decreaseFontSize`). One object keeps saving in tasks 22 and 27 simple.
+    - Font size: px, 14–28, step 2, default 18. The provider enforces the limits.
+    - Rejected: a plain hook in `Reader`. Its state resets whenever Reader unmounts, so it would call `GET /me/settings` on every chapter visit from search.
+    - Accepted cost: every test that renders Reader needs the provider.
 
 ## Conventions
 
@@ -147,10 +153,15 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Replace the hard-coded `white` / `black` / `grey` in `ChapterContent.css` with the custom properties. The reader root's class is now `chapter`, not `reader`.
     - Done when: switching the hard-coded attribute changes the look.
 
-- [ ] **18. `useReaderSettings` hook (state only)**
-    - Files: `src/components/reader/logic/useReaderSettings.ts` and its test
-    - Holds `{ fontSize, theme, font }` with defaults, and provides setters or an updater. Keep the font size within a min and max.
-    - Done when: the tests pass. Reader passes the values to `data-theme`, `data-font` and the `--reader-font-size` style.
+- [ ] **18. `ReaderSettingsContext` (state only)**
+    - Files: `src/context/ReaderSettingsContext.tsx` and its test, `src/main.tsx`, `Reader.tsx`, `Reader.css`, `Reader.test.tsx`, possibly `src/types/ReaderSettings.ts`
+    - Build the provider and `useReaderSettings()` from your understanding of `AuthContext.tsx`. Use the API and limits from Decisions → Settings state.
+    - Reader replaces its two `useState`s with the context, keeps the temporary buttons working, and adds the `--reader-font-size` style. `Reader.css` reads it with a fallback, which finishes the font-size part of task 17.
+    - Think about:
+        - Where do the allowed themes and fonts live, so the task 22/23 guards can reuse them?
+        - Why does TypeScript reject a `--custom` key in `style`?
+        - What should `useReaderSettings()` do outside the provider?
+    - Done when: the context tests cover the defaults, each action, and both font-size limits. Reader tests pass with the provider, and the temporary buttons still work in the browser.
 
 - [ ] **19. Floating settings button and popup shell**
     - Files: `ReaderSettings.tsx`, `ReaderSettings.css`, test
@@ -160,8 +171,9 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
 
 - [ ] **20. Settings controls**
     - File: `ReaderSettings.tsx`
-    - A− / A+ buttons, a light/dark toggle and a font choice, connected to the hook through props.
-    - Done when: the tests check that each control changes the attribute or custom property on the reader root.
+    - A− / A+ buttons, a light/dark toggle and a font choice, connected through `useReaderSettings()`.
+    - Remove the temporary theme and font buttons from `Reader.tsx`.
+    - Done when: the tests check that each control changes the attribute or custom property on the reader root. This includes the deferred Reader attribute tests (defaults, theme, font), which find the root with `closest('.chapter')`.
 
 - [ ] **21. Fonts**
     - Files: `Reader.css`, possibly `index.html`
@@ -169,7 +181,7 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Done when: all options render visibly differently.
 
 - [ ] **22. localStorage persistence**
-    - File: `useReaderSettings.ts` and its test
+    - File: `ReaderSettingsContext.tsx` and its test
     - Load on start and save on change. Handle stored data that is corrupt or out of date.
     - Done when: settings survive a refresh while logged out.
 
@@ -194,8 +206,8 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
     - Add `getSettings` and `saveSettings` on `authApi` with the access token, the same way `AuthContext` calls `/me`.
     - Done when: it type-checks.
 
-- [ ] **27. Hook uses the account when logged in**
-    - Files: `useReaderSettings.ts`, `ReaderSettings.tsx`, tests
+- [ ] **27. Provider uses the account when logged in**
+    - Files: `ReaderSettingsContext.tsx` (reads login state with `useAuth()`), `ReaderSettings.tsx`, tests
     - Logged in: load from the account and save when the popup closes. Logged out: use localStorage (Task 22).
     - Think about: what happens to settings chosen while logged out once the user logs in?
     - Done when: the tests cover both logged-in and logged-out paths, and settings follow the account in a second browser.
