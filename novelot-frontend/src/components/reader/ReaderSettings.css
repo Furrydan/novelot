@@ -1,0 +1,74 @@
+.reader-settings__box[data-theme="light"] {
+  --icon-color: yellow;
+}
+
+.reader-settings__box[data-theme="dark"] {
+  --icon-color: white;
+}
+
+.reader-settings__box {
+  --reader-settings-width: 40%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  border-radius: 8px;
+  position: fixed;
+  bottom: 10px;
+  width: var(--reader-settings-width);
+  left: calc((100% - var(--reader-settings-width)) / 2);
+  background-color: black;
+  color: white;
+  padding: 5px 0;
+}
+
+.reader-settings__box__theme {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.reader-settings__box__theme__icon {
+  color: var(--icon-color);
+  background-color: transparent;
+  border: 1px solid var(--icon-color);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.reader-settings__box__size {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  align-items: center;
+}
+
+.reader-settings__box__size__button {
+  background-color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reader-settings__box__size__button:enabled:hover {
+  background-color: black;
+  border: 1px solid white;
+  color: white;
+}
+
+.reader-settings__box__size__button:disabled {
+  background-color: grey;
+  color: white;
+  cursor: not-allowed;
+}

@@ -29,6 +29,7 @@
   font-size: var(--reader-font-size, 18px);
   max-width: 80%;
   margin: auto;
+  margin-bottom: 80px;
   padding: 1em;
   background-color: var(--reader-bg);
   color: var(--reader-fg);

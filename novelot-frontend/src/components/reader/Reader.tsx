@@ -3,14 +3,13 @@ import { useParams } from "react-router-dom";
 import ChapterContent from "./ChapterContent";
 import ErrorBoundary from "./ErrorBoundary";
 import "./Reader.css";
+import ReaderSettings from "./ReaderSettings";
+import type {
+  Font,
+  ReaderSettings as Settings,
+} from "@novelot-types/ReaderSettings";
 
-type ReaderSettings = {
-  theme: "light" | "dark";
-  font: "serif" | "sans" | "system";
-  fontSize: number;
-};
-
-const DEFAULT_SETTINGS: ReaderSettings = {
+const DEFAULT_SETTINGS: Settings = {
   theme: "light",
   font: "serif",
   fontSize: 18,
@@ -24,7 +23,7 @@ function Reader() {
   const params = useParams();
   const novelId = Number(params.novelId);
   const chapterNumber = Number(params.chapterNumber);
-  const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   const changeFontSize = (delta: number) =>
     setSettings((s) => ({
@@ -34,6 +33,17 @@ function Reader() {
         Math.max(MIN_FONT_SIZE, s.fontSize + delta),
       ),
     }));
+
+  const toggleTheme = () => {
+    setSettings((s) => ({
+      ...s,
+      theme: s.theme === "light" ? "dark" : "light",
+    }));
+  };
+
+  const changeFont = (font: Font) => {
+    setSettings({ ...settings, font });
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -98,6 +108,14 @@ function Reader() {
 
           <ChapterContent novelId={novelId} chapterNumber={chapterNumber} />
         </div>
+        <ReaderSettings
+          theme={settings.theme}
+          toggleTheme={toggleTheme}
+          font={settings.font}
+          changeFont={changeFont}
+          size={settings.fontSize}
+          changeSize={changeFontSize}
+        />
       </Suspense>
     </ErrorBoundary>
   );
