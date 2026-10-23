@@ -20,9 +20,6 @@
   color: var(--reader-fg);
   border: 1px solid var(--reader-fg);
   border-radius: 8px;
-  transition:
-    background-color 0.3s,
-    color 0.3s;
   font-family: inherit;
 }
 
