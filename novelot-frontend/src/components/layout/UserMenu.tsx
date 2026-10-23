@@ -7,17 +7,17 @@ import AccountDropdown from "./AccountDropdown";
 
 function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, isLoggedIn } = useAuth();
+  const { user } = useAuth();
 
   const toggle = () => setIsOpen((prev) => !prev);
   const close = () => setIsOpen(false);
 
   return (
     <div className="usermenu">
-      {isLoggedIn ? (
+      {user ? (
         <button type="button" className="usermenu__trigger" onClick={toggle}>
           <FaUser className="usermenu__icon" />
-          <span className="usermenu__text">{user?.email ?? "Account"}</span>
+          <span className="usermenu__text">{user.email}</span>
         </button>
       ) : (
         <button type="button" className="usermenu__trigger" onClick={toggle}>
@@ -26,7 +26,7 @@ function UserMenu() {
         </button>
       )}
       {isOpen &&
-        (isLoggedIn ? (
+        (user ? (
           <AccountDropdown onClose={close} />
         ) : (
           <AuthDropdown onClose={close} />
