@@ -145,14 +145,14 @@ To resume in a new chat: point Claude at this file, name the next unchecked task
 
 ## Phase 4: Reader settings (local)
 
-- [ ] **17. Theme with CSS custom properties**
+- [x] **17. Theme with CSS custom properties**
     - File: `Reader.css`
     - Define `--reader-bg`, `--reader-fg` and `--reader-font` under `.reader[data-theme="light"|"dark"]` and `[data-font=...]`. Font size uses `var(--reader-font-size)` with a fallback.
     - Test it by hard-coding `data-theme="dark"` on the root in JSX for now.
     - Replace the hard-coded `white` / `black` / `grey` in `ChapterContent.css` with the custom properties. The reader root's class is now `chapter`, not `reader`.
     - Done when: switching the hard-coded attribute changes the look.
 
-- [ ] **18. Font size state in Reader**
+- [x] **18. Font size state in Reader**
     - Files: `Reader.tsx`, `Reader.css`
     - Merge `theme`, `font` and `fontSize` into one `settings` object, so task 22 saves one key.
     - Add `fontSize`, changed by `changeFontSize(delta)` and kept within the limits in Decisions → Settings state. Temporary A− / A+ buttons sit next to the theme and font buttons and are disabled at the limits.
