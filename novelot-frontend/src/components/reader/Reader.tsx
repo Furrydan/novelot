@@ -33,9 +33,11 @@ function Reader() {
             { "--reader-font-size": `${settings.fontSize}px` } as CSSProperties
           }
         >
-          <ChapterContent novelId={novelId} chapterNumber={chapterNumber} />
+          <div className="chapter__box">
+            <ChapterContent novelId={novelId} chapterNumber={chapterNumber} />
+          </div>
+          <ReaderSettings settings={settings} onSettingsChange={setSettings} />
         </div>
-        <ReaderSettings settings={settings} onSettingsChange={setSettings} />
       </Suspense>
     </ErrorBoundary>
   );

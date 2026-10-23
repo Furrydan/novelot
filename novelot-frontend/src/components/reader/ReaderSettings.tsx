@@ -17,7 +17,7 @@ type ReaderSettingsProps = {
 
 function ReaderSettings({ settings, onSettingsChange }: ReaderSettingsProps) {
   return (
-    <div className="reader-settings__box" data-theme={settings.theme}>
+    <div className="reader-settings__box">
       <div className="reader-settings__box__theme">
         <label>Theme: </label>
         <button

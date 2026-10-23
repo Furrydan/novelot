@@ -1,11 +1,3 @@
-.reader-settings__box[data-theme="light"] {
-  --icon-color: yellow;
-}
-
-.reader-settings__box[data-theme="dark"] {
-  --icon-color: white;
-}
-
 .reader-settings__box {
   --reader-settings-width: 40%;
   display: flex;
